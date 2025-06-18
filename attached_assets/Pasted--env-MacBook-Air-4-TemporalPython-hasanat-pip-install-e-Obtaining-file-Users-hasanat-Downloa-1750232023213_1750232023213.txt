@@ -1,0 +1,188 @@
+(env) MacBook-Air-4:TemporalPython hasanat$ pip install -e .
+Obtaining file:///Users/hasanat/Downloads/TemporalPython
+  Installing build dependencies ... done
+  Checking if build backend supports build_editable ... done
+  Getting requirements to build editable ... error
+  error: subprocess-exited-with-error
+  
+  × Getting requirements to build editable did not run successfully.
+  │ exit code: 1
+  ╰─> [168 lines of output]
+      /private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:75: _MissingDynamic: `readme` defined outside of `pyproject.toml` is ignored.
+      !!
+      
+              ********************************************************************************
+              The following seems to be defined outside of `pyproject.toml`:
+      
+              `readme = '# Python Temporal API\n\nA Python port of JavaScript\'s Temporal API for modern date and time handling.\n\n![Python](https://img.shields.io/badge/python-3.7+-blue.svg)\n![License](https://img.shields.io/badge/license-MIT-green.svg)\n![Tests](https://img.shields.io/badge/tests-75%20passing-brightgreen.svg)\n\n## Overview\n\nThe Temporal API provides a modern approach to working with dates and times in Python, offering a more intuitive and reliable alternative to the standard `datetime` module. This library implements the core concepts from the JavaScript Temporal proposal, adapted for Python conventions.\n\n## Features\n\n- **Core Temporal Objects**: PlainDate, PlainTime, PlainDateTime, ZonedDateTime\n- **Duration and Instant**: Classes with arithmetic operations\n- **Calendar System Support**: ISO 8601 calendar system\n- **Parsing and Formatting**: ISO 8601 string parsing and formatting\n- **Time Zone Handling**: Time zone operations using Python\'s `zoneinfo`\n- **Comparison Operators**: Full comparison support for temporal objects\n- **Type Hints**: Complete type hint coverage for better development experience\n- **Immutable Objects**: All temporal objects are immutable for thread safety\n- **Comprehensive Testing**: 75 tests covering all functionality\n\n## Installation\n\n### From Source\n\n```bash\ngit clone https://github.com/yourusername/python-temporal.git\ncd python-temporal\npip install -e .\n```\n\n### Requirements\n\n- Python 3.7+\n- `zoneinfo` (included in Python 3.9+, or install `backports.zoneinfo` for older versions)\n\n## Quick Start\n\n```python\nfrom temporal import PlainDate, PlainTime, PlainDateTime, Duration, TimeZone, ZonedDateTime\n\n# Working with dates\ndate = PlainDate(2023, 6, 15)\nprint(f"Date: {date}")  # 2023-06-15\nprint(f"Day of week: {date.day_of_week}")  # 4 (Thursday)\n\n# Date arithmetic\nfuture_date = date.add(Duration(days=7))\nprint(f"One week later: {future_date}")  # 2023-06-22\n\n# Working with times\ntime = PlainTime(14, 30, 45)\nprint(f"Time: {time}")  # 14:30:45\n\n# Working with date-times\ndt = PlainDateTime(2023, 6, 15, 14, 30, 45)\nprint(f"DateTime: {dt}")  # 2023-06-15T14:30:45\n\n# Working with timezones\ntz = TimeZone("UTC")\nzdt = ZonedDateTime(2023, 6, 15, 14, 30, 45, timezone=tz)\nprint(f"Zoned DateTime: {zdt}")  # 2023-06-15T14:30:45Z\n\n# Duration calculations\nduration = Duration(days=1, hours=2, minutes=30)\nnew_dt = dt.add(duration)\nprint(f"After adding duration: {new_dt}")  # 2023-06-16T17:00:45\n```\n\n## Core Classes\n\n### PlainDate\nRepresents a calendar date without time or timezone information.\n\n```python\ndate = PlainDate(2023, 6, 15)\ndate = PlainDate.from_string("2023-06-15")\ndate = PlainDate.today()\n```\n\n### PlainTime\nRepresents a time-of-day without date or timezone information.\n\n```python\ntime = PlainTime(14, 30, 45, 123456)  # hour, minute, second, microsecond\ntime = PlainTime.from_string("14:30:45.123456")\n```\n\n### PlainDateTime\nRepresents a date and time without timezone information.\n\n```python\ndt = PlainDateTime(2023, 6, 15, 14, 30, 45)\ndt = PlainDateTime.from_string("2023-06-15T14:30:45")\ndt = PlainDateTime.now()\n```\n\n### ZonedDateTime\nRepresents a date and time with timezone information.\n\n```python\ntz = TimeZone("UTC")\nzdt = ZonedDateTime(2023, 6, 15, 14, 30, 45, timezone=tz)\nzdt = ZonedDateTime.now(tz)\n```\n\n### Duration\nRepresents a duration of time with support for various units.\n\n```python\nduration = Duration(days=1, hours=2, minutes=30, seconds=45)\nduration = Duration.from_string("P1DT2H30M45S")  # ISO 8601 format\n```\n\n### Instant\nRepresents an exact point in time (Unix timestamp).\n\n```python\ninstant = Instant.now()\ninstant = Instant.from_epoch_seconds(1687438245)\ninstant = Instant.from_string("2023-06-22T12:50:45Z")\n```\n\n## Operations\n\n### Arithmetic\nAll temporal objects support arithmetic operations:\n\n```python\n# Adding/subtracting durations\nnew_date = date.add(Duration(days=7))\nnew_time = time.subtract(Duration(hours=1))\n\n# Subtracting temporal objects returns durations\ndiff = date2.subtract(date1)  # Returns Duration\n```\n\n### Comparisons\nAll temporal objects support comparison operations:\n\n```python\ndate1 < date2\ntime1 >= time2\ndt1 == dt2\n```\n\n### Conversions\nConvert between different temporal types:\n\n```python\n# Extract components\ndate_part = dt.to_plain_date()\ntime_part = dt.to_plain_time()\n\n# Add timezone information\nzdt = dt.to_zoned_date_time(timezone)\n\n# Convert to instant\ninstant = zdt.to_instant()\n```\n\n## Testing\n\nRun the test suite:\n\n```bash\npython -m pytest tests/ -v\n```\n\nAll 75 tests should pass, covering:\n- Core functionality of all temporal classes\n- Arithmetic operations and edge cases\n- String parsing and formatting\n- Timezone handling\n- Error conditions and validation\n\n## Examples\n\nSee `example.py` for comprehensive usage examples including:\n- Basic date/time operations\n- Duration arithmetic\n- Timezone conversions\n- Business day calculations\n- Error handling\n\n```bash\npython example.py\n```\n\n## API Reference\n\n### Error Handling\n\nThe library defines custom exceptions:\n\n- `TemporalError`: Base exception for all temporal errors\n- `RangeError`: Value outside valid range\n- `InvalidArgumentError`: Invalid argument provided\n- `TypeError`: Inappropriate type for operation\n\n### ISO 8601 Support\n\nFull support for ISO 8601 parsing and formatting:\n\n```python\n# Dates: YYYY-MM-DD\nPlainDate.from_string("2023-06-15")\n\n# Times: HH:MM:SS[.ffffff]\nPlainTime.from_string("14:30:45.123456")\n\n# DateTimes: YYYY-MM-DDTHH:MM:SS[.ffffff]\nPlainDateTime.from_string("2023-06-15T14:30:45")\n\n# Durations: P[nY][nM][nW][nD][T[nH][nM][nS]]\nDuration.from_string("P1DT2H30M45S")\n```\n\n## Contributing\n\n1. Fork the repository\n2. Create a feature branch\n3. Add tests for new functionality\n4. Ensure all tests pass\n5. Submit a pull request\n\n## License\n\nThis project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.\n\n## Acknowledgments\n\nThis library is inspired by the [JavaScript Temporal API proposal](https://tc39.es/proposal-temporal/), adapting its concepts and design patterns for Python while maintaining compatibility with Python conventions and the standard library.\n'`
+      
+              According to the spec (see the link below), however, setuptools CANNOT
+              consider this value unless `readme` is listed as `dynamic`.
+      
+              https://packaging.python.org/en/latest/specifications/pyproject-toml/#declaring-project-metadata-the-project-table
+      
+              To prevent this problem, you can list `readme` under `dynamic` or alternatively
+              remove the `[project]` table from your file and rely entirely on other means of
+              configuration.
+              ********************************************************************************
+      
+      !!
+        _handle_missing_dynamic(dist, project_table)
+      /private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:75: _MissingDynamic: `authors` defined outside of `pyproject.toml` is ignored.
+      !!
+      
+              ********************************************************************************
+              The following seems to be defined outside of `pyproject.toml`:
+      
+              `authors = 'Temporal API Contributors'`
+      
+              According to the spec (see the link below), however, setuptools CANNOT
+              consider this value unless `authors` is listed as `dynamic`.
+      
+              https://packaging.python.org/en/latest/specifications/pyproject-toml/#declaring-project-metadata-the-project-table
+      
+              To prevent this problem, you can list `authors` under `dynamic` or alternatively
+              remove the `[project]` table from your file and rely entirely on other means of
+              configuration.
+              ********************************************************************************
+      
+      !!
+        _handle_missing_dynamic(dist, project_table)
+      /private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:75: _MissingDynamic: `keywords` defined outside of `pyproject.toml` is ignored.
+      !!
+      
+              ********************************************************************************
+              The following seems to be defined outside of `pyproject.toml`:
+      
+              `keywords = ['temporal', 'date', 'time', 'datetime', 'calendar', 'timezone', 'duration']`
+      
+              According to the spec (see the link below), however, setuptools CANNOT
+              consider this value unless `keywords` is listed as `dynamic`.
+      
+              https://packaging.python.org/en/latest/specifications/pyproject-toml/#declaring-project-metadata-the-project-table
+      
+              To prevent this problem, you can list `keywords` under `dynamic` or alternatively
+              remove the `[project]` table from your file and rely entirely on other means of
+              configuration.
+              ********************************************************************************
+      
+      !!
+        _handle_missing_dynamic(dist, project_table)
+      /private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:75: _MissingDynamic: `classifiers` defined outside of `pyproject.toml` is ignored.
+      !!
+      
+              ********************************************************************************
+              The following seems to be defined outside of `pyproject.toml`:
+      
+              `classifiers = ['Development Status :: 3 - Alpha', 'Intended Audience :: Developers', 'License :: OSI Approved :: MIT License', 'Operating System :: OS Independent', 'Programming Language :: Python :: 3', 'Programming Language :: Python :: 3.7', 'Programming Language :: Python :: 3.8', 'Programming Language :: Python :: 3.9', 'Programming Language :: Python :: 3.10', 'Programming Language :: Python :: 3.11', 'Topic :: Software Development :: Libraries :: Python Modules', 'Topic :: Utilities']`
+      
+              According to the spec (see the link below), however, setuptools CANNOT
+              consider this value unless `classifiers` is listed as `dynamic`.
+      
+              https://packaging.python.org/en/latest/specifications/pyproject-toml/#declaring-project-metadata-the-project-table
+      
+              To prevent this problem, you can list `classifiers` under `dynamic` or alternatively
+              remove the `[project]` table from your file and rely entirely on other means of
+              configuration.
+              ********************************************************************************
+      
+      !!
+        _handle_missing_dynamic(dist, project_table)
+      /private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:75: _MissingDynamic: `urls` defined outside of `pyproject.toml` is ignored.
+      !!
+      
+              ********************************************************************************
+              The following seems to be defined outside of `pyproject.toml`:
+      
+              `urls = {'Bug Tracker': 'https://github.com/example/python-temporal/issues', 'Documentation': 'https://python-temporal.readthedocs.io/', 'Source Code': 'https://github.com/example/python-temporal'}`
+      
+              According to the spec (see the link below), however, setuptools CANNOT
+              consider this value unless `urls` is listed as `dynamic`.
+      
+              https://packaging.python.org/en/latest/specifications/pyproject-toml/#declaring-project-metadata-the-project-table
+      
+              To prevent this problem, you can list `urls` under `dynamic` or alternatively
+              remove the `[project]` table from your file and rely entirely on other means of
+              configuration.
+              ********************************************************************************
+      
+      !!
+        _handle_missing_dynamic(dist, project_table)
+      /private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:75: _MissingDynamic: `optional-dependencies` defined outside of `pyproject.toml` is ignored.
+      !!
+      
+              ********************************************************************************
+              The following seems to be defined outside of `pyproject.toml`:
+      
+              `optional-dependencies = {'dev': ['pytest>=6.0', 'pytest-cov', 'black', 'flake8']}`
+      
+              According to the spec (see the link below), however, setuptools CANNOT
+              consider this value unless `optional-dependencies` is listed as `dynamic`.
+      
+              https://packaging.python.org/en/latest/specifications/pyproject-toml/#declaring-project-metadata-the-project-table
+      
+              To prevent this problem, you can list `optional-dependencies` under `dynamic` or alternatively
+              remove the `[project]` table from your file and rely entirely on other means of
+              configuration.
+              ********************************************************************************
+      
+      !!
+        _handle_missing_dynamic(dist, project_table)
+      /private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py:82: SetuptoolsWarning: `install_requires` overwritten in `pyproject.toml` (dependencies)
+        corresp(dist, value, root_dir)
+      Traceback (most recent call last):
+        File "/Users/hasanat/Downloads/TemporalPython/env/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py", line 389, in <module>
+          main()
+          ~~~~^^
+        File "/Users/hasanat/Downloads/TemporalPython/env/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py", line 373, in main
+          json_out["return_val"] = hook(**hook_input["kwargs"])
+                                   ~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+        File "/Users/hasanat/Downloads/TemporalPython/env/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py", line 157, in get_requires_for_build_editable
+          return hook(config_settings)
+        File "/private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/build_meta.py", line 473, in get_requires_for_build_editable
+          return self.get_requires_for_build_wheel(config_settings)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+        File "/private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/build_meta.py", line 331, in get_requires_for_build_wheel
+          return self._get_build_requires(config_settings, requirements=[])
+                 ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        File "/private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/build_meta.py", line 301, in _get_build_requires
+          self.run_setup()
+          ~~~~~~~~~~~~~~^^
+        File "/private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/build_meta.py", line 512, in run_setup
+          super().run_setup(setup_script=setup_script)
+          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        File "/private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/build_meta.py", line 317, in run_setup
+          exec(code, locals())
+          ~~~~^^^^^^^^^^^^^^^^
+        File "<string>", line 13, in <module>
+        File "/private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/__init__.py", line 115, in setup
+          return distutils.core.setup(**attrs)
+                 ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+        File "/private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/_distutils/core.py", line 160, in setup
+          dist.parse_config_files()
+          ~~~~~~~~~~~~~~~~~~~~~~~^^
+        File "/private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/dist.py", line 756, in parse_config_files
+          pyprojecttoml.apply_configuration(self, filename, ignore_option_errors)
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        File "/private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/config/pyprojecttoml.py", line 73, in apply_configuration
+          return _apply(dist, config, filepath)
+        File "/private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py", line 54, in apply
+          _apply_project_table(dist, config, root_dir)
+          ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+        File "/private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py", line 82, in _apply_project_table
+          corresp(dist, value, root_dir)
+          ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+        File "/private/var/folders/q4/6n4wfvzd54g7sgqp6fzdkgzw0000gn/T/pip-build-env-mjhl17fe/overlay/lib/python3.13/site-packages/setuptools/config/_apply_pyprojecttoml.py", line 187, in _long_description
+          file = val.get("file") or ()
+                 ^^^^^^^
+      AttributeError: 'NoneType' object has no attribute 'get'
+      [end of output]
+  
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+error: subprocess-exited-with-error
+
+× Getting requirements to build editable did not run successfully.
+│ exit code: 1
+╰─> See above for output.
+
+note: This error originates from a subprocess, and is likely not a problem with pip.
