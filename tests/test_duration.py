@@ -127,7 +127,8 @@ class TestDuration:
         assert added.minutes == 30
         
         subtracted = duration1 - duration2
-        assert subtracted.minutes == 30
+        assert subtracted.hours == 1
+        assert subtracted.minutes == -30
         
         negated = -duration1
         assert negated.hours == -1

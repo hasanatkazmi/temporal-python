@@ -4,8 +4,11 @@ Setup script for the Python Temporal API.
 
 from setuptools import setup, find_packages
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+try:
+    with open("README.md", "r", encoding="utf-8") as fh:
+        long_description = fh.read()
+except FileNotFoundError:
+    long_description = "A Python port of JavaScript's Temporal API for modern date and time handling"
 
 setup(
     name="python-temporal",
