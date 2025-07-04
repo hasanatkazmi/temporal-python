@@ -150,4 +150,4 @@ Thumbs.db
 # Replit specific
 .replit
 .pythonlibs/
-replit.nix
+replit.nix.claude/
