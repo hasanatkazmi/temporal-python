@@ -12,7 +12,7 @@ class RangeError(TemporalError):
     pass
 
 
-class TypeError(TemporalError):
+class TemporalTypeError(TemporalError):
     """Raised when an operation receives an inappropriate type."""
     pass
 

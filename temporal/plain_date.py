@@ -68,7 +68,7 @@ class PlainDate:
         
         new_year = self._year + duration.years
         new_month = self._month + duration.months
-        new_day = self._day + duration.days
+        new_day = self._day
         
         # Handle month overflow/underflow
         while new_month > 12:
@@ -78,10 +78,29 @@ class PlainDate:
             new_year -= 1
             new_month += 12
         
-        # Handle day overflow
+        # Clamp day to valid range for the target month first
         max_day = get_days_in_month(new_year, new_month)
         if new_day > max_day:
             new_day = max_day
+        
+        # Now add the days
+        new_day += duration.days
+        
+        # Handle day overflow by properly carrying to next month
+        while new_day > get_days_in_month(new_year, new_month):
+            new_day -= get_days_in_month(new_year, new_month)
+            new_month += 1
+            if new_month > 12:
+                new_year += 1
+                new_month = 1
+        
+        # Handle day underflow
+        while new_day < 1:
+            new_month -= 1
+            if new_month < 1:
+                new_year -= 1
+                new_month = 12
+            new_day += get_days_in_month(new_year, new_month)
         
         return PlainDate(new_year, new_month, new_day, self._calendar)
     
@@ -121,9 +140,8 @@ class PlainDate:
         from .plain_date_time import PlainDateTime
         
         if time is None:
-            from .plain_time import PlainTime
             time = PlainTime(0, 0, 0)
-        elif not hasattr(time, 'hour'):
+        elif not isinstance(time, PlainTime):
             raise InvalidArgumentError("Expected PlainTime object")
         
         return PlainDateTime(

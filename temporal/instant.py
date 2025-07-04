@@ -117,7 +117,10 @@ class Instant:
         """Check equality with another Instant."""
         if not isinstance(other, Instant):
             return False
-        return abs(self._epoch_seconds - other._epoch_seconds) < 1e-6  # Account for float precision
+        # Use machine epsilon for better precision handling
+        import sys
+        epsilon = sys.float_info.epsilon * max(abs(self._epoch_seconds), abs(other._epoch_seconds), 1.0) * 10
+        return abs(self._epoch_seconds - other._epoch_seconds) <= epsilon
     
     def __lt__(self, other) -> bool:
         """Check if this instant is less than another."""
@@ -158,7 +161,7 @@ class Instant:
                 dt = dt.replace(tzinfo=timezone.utc)
             
             return cls(dt.timestamp())
-        except Exception as e:
+        except (ValueError, TypeError, OverflowError) as e:
             raise InvalidArgumentError(f"Invalid ISO instant format: {instant_string}") from e
     
     @classmethod

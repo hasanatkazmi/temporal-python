@@ -19,6 +19,11 @@ class Duration:
                            ('seconds', seconds), ('microseconds', microseconds)]:
             if not isinstance(value, (int, float)):
                 raise InvalidArgumentError(f"{name} must be a number")
+            # Warn about precision loss when converting floats to ints
+            if isinstance(value, float) and value != int(value):
+                import warnings
+                warnings.warn(f"Converting {name} from float {value} to int {int(value)} - precision may be lost", 
+                             UserWarning, stacklevel=2)
         
         self._years = int(years)
         self._months = int(months)
@@ -38,25 +43,25 @@ class Duration:
         if abs(self._microseconds) >= 1000000:
             extra_seconds = self._microseconds // 1000000
             self._seconds += extra_seconds
-            self._microseconds %= 1000000
+            self._microseconds -= extra_seconds * 1000000
         
         # Normalize seconds to minutes
         if abs(self._seconds) >= 60:
             extra_minutes = self._seconds // 60
             self._minutes += extra_minutes
-            self._seconds %= 60
+            self._seconds -= extra_minutes * 60
         
         # Normalize minutes to hours
         if abs(self._minutes) >= 60:
             extra_hours = self._minutes // 60
             self._hours += extra_hours
-            self._minutes %= 60
+            self._minutes -= extra_hours * 60
         
         # Normalize hours to days
         if abs(self._hours) >= 24:
             extra_days = self._hours // 24
             self._days += extra_days
-            self._hours %= 24
+            self._hours -= extra_days * 24
         
         # Normalize weeks to days
         if self._weeks != 0:
@@ -210,7 +215,9 @@ class Duration:
             time_parts.append(f"{self._minutes}M")
         if self._seconds or self._microseconds:
             if self._microseconds:
-                seconds_str = f"{self._seconds}.{self._microseconds:06d}".rstrip('0').rstrip('.')
+                # Handle case where seconds is 0 but microseconds is not
+                total_seconds = self._seconds + self._microseconds / 1000000
+                seconds_str = f"{total_seconds:.6f}".rstrip('0').rstrip('.')
                 time_parts.append(f"{seconds_str}S")
             else:
                 time_parts.append(f"{self._seconds}S")

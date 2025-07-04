@@ -16,7 +16,7 @@ from .timezone import TimeZone
 from .exceptions import (
     TemporalError,
     RangeError,
-    TypeError as TemporalTypeError,
+    TemporalTypeError,
     InvalidArgumentError
 )
 
