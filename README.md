@@ -1,4 +1,4 @@
-# Python Temporal API
+# Temporal Python
 
 A Python port of JavaScript's Temporal API for modern date and time handling.
 
@@ -27,8 +27,8 @@ The Temporal API provides a modern approach to working with dates and times in P
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/python-temporal.git
-cd python-temporal
+git clone https://github.com/hasanatkazmi/temporal-python.git
+cd temporal-python
 pip install -e .
 ```
 
@@ -199,7 +199,7 @@ The library defines custom exceptions:
 - `TemporalError`: Base exception for all temporal errors
 - `RangeError`: Value outside valid range
 - `InvalidArgumentError`: Invalid argument provided
-- `TypeError`: Inappropriate type for operation
+- `TemporalTypeError`: Inappropriate type for operation
 
 ### ISO 8601 Support
 
