@@ -112,12 +112,7 @@ jobs:
             content = f.read()
         
         # Create new entry
-        new_entry = f"""## [{version}] - {current_date}
-
-### Changed
-- Manual {bump_type} version bump
-
-"""
+        new_entry = f"## [{version}] - {current_date}\n\n### Changed\n- Manual {bump_type} version bump\n\n"
         
         # Insert after the header
         lines = content.split('\n')
