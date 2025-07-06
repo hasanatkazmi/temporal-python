@@ -215,14 +215,9 @@ class Duration:
             microseconds=microseconds if microseconds is not None else self._microseconds,
         )
 
-    def __str__(self) -> str:
-        """Return ISO 8601 duration string representation."""
-        if self._is_zero():
-            return "PT0S"
-
+    def _format_date_components(self) -> list:
+        """Format date components for ISO 8601 string."""
         parts = []
-
-        # Date part
         if self._years:
             parts.append(f"{self._years}Y")
         if self._months:
@@ -231,8 +226,10 @@ class Duration:
             parts.append(f"{self._weeks}W")
         if self._days:
             parts.append(f"{self._days}D")
+        return parts
 
-        # Time part
+    def _format_time_components(self) -> list:
+        """Format time components for ISO 8601 string."""
         time_parts = []
         if self._hours:
             time_parts.append(f"{self._hours}H")
@@ -246,6 +243,15 @@ class Duration:
                 time_parts.append(f"{seconds_str}S")
             else:
                 time_parts.append(f"{self._seconds}S")
+        return time_parts
+
+    def __str__(self) -> str:
+        """Return ISO 8601 duration string representation."""
+        if self._is_zero():
+            return "PT0S"
+
+        parts = self._format_date_components()
+        time_parts = self._format_time_components()
 
         result = "P" + "".join(parts)
         if time_parts:
@@ -329,16 +335,8 @@ class Duration:
         """Check if this is a blank (zero) duration."""
         return self._is_zero()
 
-    def total(self, unit: str, relative_to=None) -> float:
-        """Calculate the total duration in the specified unit.
-
-        Args:
-            unit: The unit to calculate total in ('years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'microseconds')
-            relative_to: Reference temporal object for calendar calculations (required for years/months)
-
-        Returns:
-            Total duration in the specified unit
-        """
+    def _validate_total_unit(self, unit: str, relative_to) -> None:
+        """Validate unit and relative_to parameters for total calculation."""
         if unit not in ["years", "months", "weeks", "days", "hours", "minutes", "seconds", "microseconds"]:
             raise InvalidArgumentError(f"Invalid unit: {unit}")
 
@@ -346,22 +344,23 @@ class Duration:
         if unit in ["years", "months"] and relative_to is None:
             raise InvalidArgumentError(f"relative_to is required for unit '{unit}'")
 
-        # Convert everything to seconds first (excluding years/months)
-        total_seconds = self.total_seconds()
+    def _calculate_time_unit_total(self, unit: str, total_seconds: float) -> float:
+        """Calculate total for time-based units."""
+        unit_conversions = {
+            "microseconds": 1000000,
+            "seconds": 1,
+            "minutes": 1 / 60,
+            "hours": 1 / 3600,
+            "days": 1 / (24 * 3600),
+            "weeks": 1 / (7 * 24 * 3600)
+        }
+        if unit in unit_conversions:
+            return total_seconds * unit_conversions[unit]
+        return 0.0
 
-        if unit == "microseconds":
-            return total_seconds * 1000000 + self._years * 0 + self._months * 0  # Years/months not convertible
-        elif unit == "seconds":
-            return total_seconds
-        elif unit == "minutes":
-            return total_seconds / 60
-        elif unit == "hours":
-            return total_seconds / 3600
-        elif unit == "days":
-            return total_seconds / (24 * 3600)
-        elif unit == "weeks":
-            return total_seconds / (7 * 24 * 3600)
-        elif unit == "months":
+    def _calculate_calendar_unit_total(self, unit: str, total_seconds: float, relative_to) -> float:
+        """Calculate total for calendar-based units (months, years)."""
+        if unit == "months":
             # This is complex and depends on the reference date
             # For now, approximate as 30.44 days per month
             if relative_to:
@@ -375,8 +374,98 @@ class Duration:
                 # Could implement proper calculation based on reference date
                 pass
             return (total_seconds / (24 * 3600)) / 365.25 + self._years + self._months / 12
-
         return 0.0
+
+    def total(self, unit: str, relative_to=None) -> float:
+        """Calculate the total duration in the specified unit.
+
+        Args:
+            unit: The unit to calculate total in ('years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'microseconds')
+            relative_to: Reference temporal object for calendar calculations (required for years/months)
+
+        Returns:
+            Total duration in the specified unit
+        """
+        self._validate_total_unit(unit, relative_to)
+
+        # Convert everything to seconds first (excluding years/months)
+        total_seconds = self.total_seconds()
+
+        if unit in ["years", "months"]:
+            return self._calculate_calendar_unit_total(unit, total_seconds, relative_to)
+        else:
+            return self._calculate_time_unit_total(unit, total_seconds)
+
+    def _parse_round_options(self, options: Union[str, dict]) -> tuple:
+        """Parse rounding options to extract smallest unit and increment."""
+        if isinstance(options, str):
+            return options, 1
+        elif isinstance(options, dict):
+            smallest_unit = options.get("smallestUnit", "microseconds")
+            rounding_increment = options.get("roundingIncrement", 1)
+            return smallest_unit, rounding_increment
+        else:
+            raise InvalidArgumentError("Options must be string or dict")
+
+    def _round_to_years(self, rounding_increment: int) -> "Duration":
+        """Round duration to years."""
+        return Duration(years=round(self._years / rounding_increment) * rounding_increment)
+
+    def _round_to_months(self, rounding_increment: int) -> "Duration":
+        """Round duration to months."""
+        return Duration(years=self._years, months=round(self._months / rounding_increment) * rounding_increment)
+
+    def _round_to_weeks(self, rounding_increment: int) -> "Duration":
+        """Round duration to weeks."""
+        total_weeks = self._weeks + self._days / 7
+        rounded_weeks = round(total_weeks / rounding_increment) * rounding_increment
+        return Duration(years=self._years, months=self._months, weeks=rounded_weeks)
+
+    def _round_to_days(self, rounding_increment: int) -> "Duration":
+        """Round duration to days."""
+        total_days = self._days + self._hours / 24
+        rounded_days = round(total_days / rounding_increment) * rounding_increment
+        return Duration(years=self._years, months=self._months, days=rounded_days)
+
+    def _round_to_hours(self, rounding_increment: int) -> "Duration":
+        """Round duration to hours."""
+        total_hours = self._hours + self._minutes / 60
+        rounded_hours = round(total_hours / rounding_increment) * rounding_increment
+        return Duration(years=self._years, months=self._months, days=self._days, hours=rounded_hours)
+
+    def _round_to_minutes(self, rounding_increment: int) -> "Duration":
+        """Round duration to minutes."""
+        total_minutes = self._minutes + self._seconds / 60
+        rounded_minutes = round(total_minutes / rounding_increment) * rounding_increment
+        return Duration(
+            years=self._years, months=self._months, days=self._days, hours=self._hours, minutes=rounded_minutes
+        )
+
+    def _round_to_seconds(self, rounding_increment: int) -> "Duration":
+        """Round duration to seconds."""
+        total_seconds = self._seconds + self._microseconds / 1000000
+        rounded_seconds = round(total_seconds / rounding_increment) * rounding_increment
+        return Duration(
+            years=self._years,
+            months=self._months,
+            days=self._days,
+            hours=self._hours,
+            minutes=self._minutes,
+            seconds=rounded_seconds,
+        )
+
+    def _round_to_microseconds(self, rounding_increment: int) -> "Duration":
+        """Round duration to microseconds."""
+        rounded_microseconds = round(self._microseconds / rounding_increment) * rounding_increment
+        return Duration(
+            years=self._years,
+            months=self._months,
+            days=self._days,
+            hours=self._hours,
+            minutes=self._minutes,
+            seconds=self._seconds,
+            microseconds=rounded_microseconds,
+        )
 
     def round(self, options: Union[str, dict]) -> "Duration":
         """Round the duration to a specified increment.
@@ -387,17 +476,24 @@ class Duration:
         Returns:
             A new rounded Duration
         """
-        if isinstance(options, str):
-            smallest_unit = options
-            rounding_increment = 1
-        elif isinstance(options, dict):
-            smallest_unit = options.get("smallestUnit", "microseconds")
-            rounding_increment = options.get("roundingIncrement", 1)
-        else:
-            raise InvalidArgumentError("Options must be string or dict")
+        smallest_unit, rounding_increment = self._parse_round_options(options)
 
-        # Create a copy to work with
-        result = Duration(
+        # Route to appropriate rounding method
+        round_methods = {
+            "years": self._round_to_years,
+            "months": self._round_to_months,
+            "weeks": self._round_to_weeks,
+            "days": self._round_to_days,
+            "hours": self._round_to_hours,
+            "minutes": self._round_to_minutes,
+            "seconds": self._round_to_seconds,
+            "microseconds": self._round_to_microseconds,
+        }
+
+        if smallest_unit in round_methods:
+            return round_methods[smallest_unit](rounding_increment)
+        # Fallback - return a copy
+        return Duration(
             years=self._years,
             months=self._months,
             weeks=self._weeks,
@@ -407,54 +503,6 @@ class Duration:
             seconds=self._seconds,
             microseconds=self._microseconds,
         )
-
-        # Round based on smallest unit
-        if smallest_unit == "years":
-            result = Duration(years=round(result._years / rounding_increment) * rounding_increment)
-        elif smallest_unit == "months":
-            result = Duration(years=result._years, months=round(result._months / rounding_increment) * rounding_increment)
-        elif smallest_unit == "weeks":
-            total_weeks = result._weeks + result._days / 7
-            rounded_weeks = round(total_weeks / rounding_increment) * rounding_increment
-            result = Duration(years=result._years, months=result._months, weeks=rounded_weeks)
-        elif smallest_unit == "days":
-            total_days = result._days + result._hours / 24
-            rounded_days = round(total_days / rounding_increment) * rounding_increment
-            result = Duration(years=result._years, months=result._months, days=rounded_days)
-        elif smallest_unit == "hours":
-            total_hours = result._hours + result._minutes / 60
-            rounded_hours = round(total_hours / rounding_increment) * rounding_increment
-            result = Duration(years=result._years, months=result._months, days=result._days, hours=rounded_hours)
-        elif smallest_unit == "minutes":
-            total_minutes = result._minutes + result._seconds / 60
-            rounded_minutes = round(total_minutes / rounding_increment) * rounding_increment
-            result = Duration(
-                years=result._years, months=result._months, days=result._days, hours=result._hours, minutes=rounded_minutes
-            )
-        elif smallest_unit == "seconds":
-            total_seconds = result._seconds + result._microseconds / 1000000
-            rounded_seconds = round(total_seconds / rounding_increment) * rounding_increment
-            result = Duration(
-                years=result._years,
-                months=result._months,
-                days=result._days,
-                hours=result._hours,
-                minutes=result._minutes,
-                seconds=rounded_seconds,
-            )
-        elif smallest_unit == "microseconds":
-            rounded_microseconds = round(result._microseconds / rounding_increment) * rounding_increment
-            result = Duration(
-                years=result._years,
-                months=result._months,
-                days=result._days,
-                hours=result._hours,
-                minutes=result._minutes,
-                seconds=result._seconds,
-                microseconds=rounded_microseconds,
-            )
-
-        return result
 
     def to_json(self) -> str:
         """Convert to JSON string."""
