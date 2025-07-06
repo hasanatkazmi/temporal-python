@@ -289,8 +289,8 @@ jobs:
         # Push branch
         git push origin "$branch_name"
 
-        # Create PR
-        gh pr create \
+        # Create PR and auto-merge it
+        pr_url=$(gh pr create \
           --title "🔖 Bump version to ${{ steps.version.outputs.new_version }}" \
           --body "$(cat <<'EOF'
         ## Auto Version Bump
@@ -308,12 +308,19 @@ jobs:
         - Build and publish package to PyPI
         - Create GitHub release
 
-        🤖 This PR was created automatically by the Auto Version Update workflow.
+        🤖 This PR was created and will be auto-merged by the Auto Version Update workflow.
         EOF
         )" \
           --head "$branch_name" \
-          --base main \
-          --label "version-bump" \
-          --label "automated"
+          --base main)
+
+        echo "Created PR: $pr_url"
+
+        # Wait a moment for PR to be processed
+        sleep 10
+
+        # Auto-merge the version bump PR
+        echo "Auto-merging version bump PR..."
+        gh pr merge "$pr_url" --squash --delete-branch
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
