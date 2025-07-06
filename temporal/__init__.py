@@ -35,4 +35,4 @@ __all__ = [
     "InvalidArgumentError",
 ]
 
-# Fixed deprecated actions - testing CI-dependent PyPI publishing
+# Testing custom wait-for-checks with GitHub API
