@@ -229,7 +229,7 @@ class PlainDate:
         if not isinstance(other, PlainDate):
             raise InvalidArgumentError("Expected PlainDate")
 
-        return other.subtract(self)
+        return other.subtract(self)  # type: ignore[return-value]
 
     def since(self, other: "PlainDate") -> "Duration":
         """Calculate duration from another date to this one.
@@ -243,7 +243,7 @@ class PlainDate:
         if not isinstance(other, PlainDate):
             raise InvalidArgumentError("Expected PlainDate")
 
-        return self.subtract(other)
+        return self.subtract(other)  # type: ignore[return-value]
 
     def to_plain_year_month(self) -> "PlainYearMonth":
         """Convert to PlainYearMonth.

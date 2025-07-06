@@ -197,7 +197,7 @@ class PlainTime:
         if not isinstance(other, PlainTime):
             raise InvalidArgumentError("Expected PlainTime")
 
-        return other.subtract(self)
+        return other.subtract(self)  # type: ignore[return-value]
 
     def since(self, other: "PlainTime") -> "Duration":
         """Calculate duration from another time to this one.
@@ -211,7 +211,7 @@ class PlainTime:
         if not isinstance(other, PlainTime):
             raise InvalidArgumentError("Expected PlainTime")
 
-        return self.subtract(other)
+        return self.subtract(other)  # type: ignore[return-value]
 
     def round(self, options: Union[str, dict]) -> "PlainTime":
         """Round the time to a specified increment.

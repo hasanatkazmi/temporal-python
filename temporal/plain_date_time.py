@@ -277,7 +277,7 @@ class PlainDateTime:
         if not isinstance(other, PlainDateTime):
             raise InvalidArgumentError("Expected PlainDateTime")
 
-        return other.subtract(self)
+        return other.subtract(self)  # type: ignore[return-value]
 
     def since(self, other: "PlainDateTime") -> "Duration":
         """Calculate duration from another datetime to this one.
@@ -291,7 +291,7 @@ class PlainDateTime:
         if not isinstance(other, PlainDateTime):
             raise InvalidArgumentError("Expected PlainDateTime")
 
-        return self.subtract(other)
+        return self.subtract(other)  # type: ignore[return-value]
 
     def round(self, options: Union[str, dict]) -> "PlainDateTime":
         """Round the datetime to a specified increment.

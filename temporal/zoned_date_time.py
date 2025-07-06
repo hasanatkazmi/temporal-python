@@ -106,13 +106,13 @@ class ZonedDateTime:
     @property
     def offset_seconds(self) -> int:
         """Get the UTC offset in seconds."""
-        return int(self._datetime.utcoffset().total_seconds())
+        return int(self._datetime.utcoffset().total_seconds())  # type: ignore[union-attr]
 
     @property
     def offset_string(self) -> str:
         """Get the UTC offset as a string (e.g., '+05:00')."""
         offset = self._datetime.utcoffset()
-        total_seconds = int(offset.total_seconds())
+        total_seconds = int(offset.total_seconds())  # type: ignore[union-attr]
 
         if total_seconds == 0:
             return "Z"
@@ -194,7 +194,7 @@ class ZonedDateTime:
             # Subtract zoned datetime - return duration
             instant1 = self.to_instant()
             instant2 = other.to_instant()
-            return instant1.subtract(instant2)
+            return instant1.subtract(instant2)  # type: ignore[return-value]
         else:
             raise InvalidArgumentError("Expected ZonedDateTime or Duration object")
 
@@ -289,7 +289,7 @@ class ZonedDateTime:
 
             # Use provided timezone if datetime has no timezone info
             if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.zone_info)
+                dt = dt.replace(tzinfo=timezone.zone_info)  # type: ignore[union-attr]
             elif timezone is not None:
                 # Convert to the specified timezone
                 dt = dt.astimezone(timezone.zone_info)
@@ -323,7 +323,7 @@ class ZonedDateTime:
         if not isinstance(other, ZonedDateTime):
             raise InvalidArgumentError("Expected ZonedDateTime")
 
-        return other.subtract(self)
+        return other.subtract(self)  # type: ignore[return-value]
 
     def since(self, other: "ZonedDateTime") -> "Duration":
         """Calculate duration from another zoned datetime to this one.
@@ -337,7 +337,7 @@ class ZonedDateTime:
         if not isinstance(other, ZonedDateTime):
             raise InvalidArgumentError("Expected ZonedDateTime")
 
-        return self.subtract(other)
+        return self.subtract(other)  # type: ignore[return-value]
 
     def round(self, options: Union[str, dict]) -> "ZonedDateTime":
         """Round the zoned datetime to a specified increment.

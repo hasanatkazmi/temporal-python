@@ -195,7 +195,7 @@ class Instant:
         if not isinstance(other, Instant):
             raise InvalidArgumentError("Expected Instant")
 
-        return other.subtract(self)
+        return other.subtract(self)  # type: ignore[return-value]
 
     def since(self, other: "Instant") -> Duration:
         """Calculate duration from another instant to this one.
@@ -209,7 +209,7 @@ class Instant:
         if not isinstance(other, Instant):
             raise InvalidArgumentError("Expected Instant")
 
-        return self.subtract(other)
+        return self.subtract(other)  # type: ignore[return-value]
 
     def round(self, options: Union[str, dict]) -> "Instant":
         """Round the instant to a specified increment.
