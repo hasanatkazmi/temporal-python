@@ -19,37 +19,60 @@ jobs:
     if: github.event_name == 'push' || (github.event.pull_request.merged == true)
     steps:
     - name: Wait for CI workflows to complete
-      uses: lewagon/wait-on-check-action@v1.3.4
-      with:
-        ref: ${{ github.ref }}
-        check-name: 'test'  # CI workflow job name
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        wait-interval: 10
+      run: |
+        echo "Waiting for CI workflows to complete..."
+        # Wait a bit for workflows to start
+        sleep 30
 
-    - name: Wait for Pre-commit to complete
-      uses: lewagon/wait-on-check-action@v1.3.4
-      with:
-        ref: ${{ github.ref }}
-        check-name: 'pre-commit'
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        wait-interval: 10
+        # Wait for all workflows to complete
+        max_attempts=30
+        attempt=0
 
-    - name: Wait for Documentation to complete
-      uses: lewagon/wait-on-check-action@v1.3.4
-      with:
-        ref: ${{ github.ref }}
-        check-name: 'docs'
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        wait-interval: 10
+        while [ $attempt -lt $max_attempts ]; do
+          echo "Checking workflow status (attempt $((attempt + 1))/$max_attempts)..."
 
-    - name: Wait for CodeQL to complete
-      uses: lewagon/wait-on-check-action@v1.3.4
-      with:
-        ref: ${{ github.ref }}
-        check-name: 'analyze'  # CodeQL job name
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        wait-interval: 10
-        allowed-conclusions: success,skipped  # Allow skipped for CodeQL
+          # Get workflow runs for this commit
+          runs=$(gh api repos/${{ github.repository }}/actions/runs \
+            --jq '.workflow_runs[] | select(.head_sha == "${{ github.sha }}" and .name != "Auto Version Update") | {name: .name, status: .status, conclusion: .conclusion}')
+
+          if [ -z "$runs" ]; then
+            echo "No workflow runs found yet, waiting..."
+            sleep 20
+            attempt=$((attempt + 1))
+            continue
+          fi
+
+          echo "Current workflow status:"
+          echo "$runs"
+
+          # Check if all workflows are completed
+          pending=$(echo "$runs" | jq -r 'select(.status != "completed")')
+
+          if [ -z "$pending" ]; then
+            echo "All workflows completed!"
+
+            # Check if any failed
+            failed=$(echo "$runs" | jq -r 'select(.conclusion != "success" and .conclusion != "skipped")')
+
+            if [ -n "$failed" ]; then
+              echo "Some workflows failed:"
+              echo "$failed"
+              exit 1
+            fi
+
+            echo "All workflows passed! Proceeding with version update..."
+            exit 0
+          fi
+
+          echo "Still waiting for workflows to complete..."
+          sleep 20
+          attempt=$((attempt + 1))
+        done
+
+        echo "Timeout waiting for workflows to complete"
+        exit 1
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Only proceed with version bump and PyPI publishing if all CI checks pass
   auto-version:
