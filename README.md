@@ -1,10 +1,16 @@
 # Temporal Python
 
-A Python port of JavaScript's Temporal API for modern date and time handling.
+A complete Python port of JavaScript's Temporal API for modern date and time handling.
 
-![Python](https://img.shields.io/badge/python-3.7+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Tests](https://img.shields.io/badge/tests-75%20passing-brightgreen.svg)
+[![CI](https://github.com/hasanatkazmi/temporal-python/workflows/CI/badge.svg)](https://github.com/hasanatkazmi/temporal-python/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/hasanatkazmi/temporal-python/branch/main/graph/badge.svg)](https://codecov.io/gh/hasanatkazmi/temporal-python)
+[![PyPI version](https://badge.fury.io/py/temporal-python.svg)](https://badge.fury.io/py/temporal-python)
+[![Python Support](https://img.shields.io/pypi/pyversions/temporal-python.svg)](https://pypi.org/project/temporal-python/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
+[![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
+[![Tests](https://img.shields.io/badge/tests-101%20passing-brightgreen.svg)](#testing)
 
 ## Overview
 

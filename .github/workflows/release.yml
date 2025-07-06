@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
+        exclude:
+          # Python 3.7 is not available on ubuntu-latest
+          - python-version: '3.7'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install pytest pytest-cov
+
+    - name: Install backports.zoneinfo for Python < 3.9
+      if: matrix.python-version < '3.9'
+      run: pip install backports.zoneinfo
+
+    - name: Run tests
+      run: |
+        pytest tests/ -v
+
+  build-and-publish:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build
+
+    - name: Build package
+      run: |
+        python -m build
+
+    - name: Publish package to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+
+  create-release:
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Extract tag name
+      id: tag
+      run: echo "tag-name=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.tag-name }}
+        release_name: Release ${{ steps.tag.outputs.tag-name }}
+        body: |
+          ## What's Changed
+          
+          See [CHANGELOG.md](https://github.com/hasanatkazmi/temporal-python/blob/main/CHANGELOG.md) for detailed changes.
+          
+          ## Installation
+          
+          ```bash
+          pip install temporal-python==${{ steps.tag.outputs.tag-name }}
+          ```
+          
+          ## Full Changelog
+          
+          **Full Changelog**: https://github.com/hasanatkazmi/temporal-python/compare/v0.0.1...${{ steps.tag.outputs.tag-name }}
+        draft: false
+        prerelease: false

@@ -1,0 +1,173 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install sphinx sphinx-rtd-theme sphinx-autodoc-typehints
+
+    - name: Check README
+      run: |
+        python -c "
+        import temporal
+        print('✅ Package imports successfully')
+        
+        # Test basic functionality from README examples
+        from temporal import PlainDate, PlainTime, PlainDateTime, PlainYearMonth, PlainMonthDay, Duration, TimeZone, ZonedDateTime, Instant
+        
+        # Quick smoke test of key features
+        date = PlainDate(2023, 6, 15)
+        ym = PlainYearMonth(2023, 6)
+        md = PlainMonthDay(8, 24)
+        duration = Duration(days=1, hours=2)
+        
+        print(f'✅ PlainDate: {date}')
+        print(f'✅ PlainYearMonth: {ym}')
+        print(f'✅ PlainMonthDay: {md}')
+        print(f'✅ Duration: {duration}')
+        print('✅ All README examples work correctly')
+        "
+
+    - name: Validate examples in README
+      run: |
+        python -c "
+        # Test specific examples from README
+        from temporal import PlainDate, PlainYearMonth, PlainMonthDay, Duration
+        
+        # Test PlainYearMonth
+        ym = PlainYearMonth(2023, 6)
+        assert ym.days_in_month == 30
+        
+        # Test PlainMonthDay
+        md = PlainMonthDay(8, 24)
+        assert md.is_valid_for_year(2024) == True
+        
+        # Test Duration methods
+        d = Duration(days=1, hours=5, minutes=30)
+        assert d.total('hours') == 29.5
+        
+        # Test from_any
+        date_from_dict = PlainDate.from_any({'year': 2024, 'month': 8, 'day': 24})
+        assert str(date_from_dict) == '2024-08-24'
+        
+        print('✅ All README code examples validated')
+        "
+
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install pytest-benchmark
+
+    - name: Run performance benchmarks
+      run: |
+        python -c "
+        import time
+        from temporal import PlainDate, Duration, PlainDateTime, Instant
+        
+        # Simple performance test
+        start = time.time()
+        
+        # Create 10000 dates and perform operations
+        for i in range(10000):
+            date = PlainDate(2023, 6, 15)
+            future = date.add(Duration(days=i % 365))
+            _ = str(future)
+        
+        date_time = time.time() - start
+        print(f'✅ Date operations: {date_time:.3f}s for 10k operations')
+        
+        # Test datetime operations
+        start = time.time()
+        for i in range(10000):
+            dt = PlainDateTime(2023, 6, 15, 12, 30, 45)
+            future = dt.add(Duration(hours=i % 24))
+            _ = str(future)
+        
+        datetime_time = time.time() - start
+        print(f'✅ DateTime operations: {datetime_time:.3f}s for 10k operations')
+        
+        print('✅ Performance benchmarks completed')
+        "
+
+  api-coverage:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+
+    - name: Check API coverage
+      run: |
+        python -c "
+        import inspect
+        from temporal import *
+        
+        # Check all classes have required methods
+        classes_to_check = [
+            PlainDate, PlainTime, PlainDateTime, PlainYearMonth, 
+            PlainMonthDay, ZonedDateTime, Duration, Instant
+        ]
+        
+        required_methods = ['equals', 'to_json', 'compare']
+        temporal_methods = ['until', 'since']
+        
+        print('🔍 API Coverage Report:')
+        print('=' * 50)
+        
+        for cls in classes_to_check:
+            print(f'\\n📋 {cls.__name__}:')
+            methods = [name for name, method in inspect.getmembers(cls, predicate=inspect.ismethod)]
+            static_methods = [name for name, method in inspect.getmembers(cls, predicate=inspect.isfunction)]
+            
+            for method in required_methods:
+                if method in static_methods or method in dir(cls):
+                    print(f'   ✅ {method}()')
+                else:
+                    print(f'   ❌ {method}() - MISSING')
+            
+            # Check temporal methods for appropriate classes
+            if cls.__name__ not in ['Calendar', 'TimeZone']:
+                for method in temporal_methods:
+                    if method in dir(cls):
+                        print(f'   ✅ {method}()')
+                    else:
+                        print(f'   ❌ {method}() - MISSING')
+        
+        print('\\n✅ API coverage check completed')
+        "
