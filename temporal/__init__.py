@@ -35,4 +35,4 @@ __all__ = [
     "InvalidArgumentError",
 ]
 
-# PyPI publishing configured with API token
+# PyPI publishing with CI dependency checks
