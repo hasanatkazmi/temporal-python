@@ -268,7 +268,7 @@ class Duration:
             f"microseconds={self._microseconds})"
         )
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check equality with another Duration."""
         if not isinstance(other, Duration):
             return False
@@ -283,11 +283,11 @@ class Duration:
             and self._microseconds == other._microseconds
         )
 
-    def __add__(self, other) -> "Duration":
+    def __add__(self, other: "Duration") -> "Duration":
         """Add operator."""
         return self.add(other)
 
-    def __sub__(self, other) -> "Duration":
+    def __sub__(self, other: "Duration") -> "Duration":
         """Subtract operator."""
         return self.subtract(other)
 
@@ -335,7 +335,7 @@ class Duration:
         """Check if this is a blank (zero) duration."""
         return self._is_zero()
 
-    def _validate_total_unit(self, unit: str, relative_to) -> None:
+    def _validate_total_unit(self, unit: str, relative_to: object) -> None:
         """Validate unit and relative_to parameters for total calculation."""
         if unit not in ["years", "months", "weeks", "days", "hours", "minutes", "seconds", "microseconds"]:
             raise InvalidArgumentError(f"Invalid unit: {unit}")
@@ -358,7 +358,7 @@ class Duration:
             return total_seconds * unit_conversions[unit]
         return 0.0
 
-    def _calculate_calendar_unit_total(self, unit: str, total_seconds: float, relative_to) -> float:
+    def _calculate_calendar_unit_total(self, unit: str, total_seconds: float, relative_to: object) -> float:
         """Calculate total for calendar-based units (months, years)."""
         if unit == "months":
             # This is complex and depends on the reference date
@@ -376,7 +376,7 @@ class Duration:
             return (total_seconds / (24 * 3600)) / 365.25 + self._years + self._months / 12
         return 0.0
 
-    def total(self, unit: str, relative_to=None) -> float:
+    def total(self, unit: str, relative_to: object = None) -> float:
         """Calculate the total duration in the specified unit.
 
         Args:

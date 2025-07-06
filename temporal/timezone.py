@@ -41,7 +41,7 @@ class TimeZone:
         """Representation of the timezone."""
         return f"TimeZone('{self._identifier}')"
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check equality with another timezone."""
         if not isinstance(other, TimeZone):
             return False

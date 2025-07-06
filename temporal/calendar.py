@@ -29,7 +29,7 @@ class Calendar:
         """Representation of the calendar."""
         return f"Calendar('{self._identifier}')"
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check equality with another calendar."""
         if not isinstance(other, Calendar):
             return False
