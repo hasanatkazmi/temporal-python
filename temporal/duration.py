@@ -352,7 +352,7 @@ class Duration:
             "minutes": 1 / 60,
             "hours": 1 / 3600,
             "days": 1 / (24 * 3600),
-            "weeks": 1 / (7 * 24 * 3600)
+            "weeks": 1 / (7 * 24 * 3600),
         }
         if unit in unit_conversions:
             return total_seconds * unit_conversions[unit]
@@ -437,9 +437,7 @@ class Duration:
         """Round duration to minutes."""
         total_minutes = self._minutes + self._seconds / 60
         rounded_minutes = round(total_minutes / rounding_increment) * rounding_increment
-        return Duration(
-            years=self._years, months=self._months, days=self._days, hours=self._hours, minutes=rounded_minutes
-        )
+        return Duration(years=self._years, months=self._months, days=self._days, hours=self._hours, minutes=rounded_minutes)
 
     def _round_to_seconds(self, rounding_increment: int) -> "Duration":
         """Round duration to seconds."""
