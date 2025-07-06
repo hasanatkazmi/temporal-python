@@ -9,7 +9,6 @@ from temporal.exceptions import InvalidArgumentError
 
 
 class TestZonedDateTime(unittest.TestCase):
-
     def test_constructor(self):
         """Test ZonedDateTime constructor."""
         tz = TimeZone("UTC")

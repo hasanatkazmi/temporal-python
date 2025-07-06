@@ -86,17 +86,17 @@ jobs:
         release_name: Release ${{ steps.tag.outputs.tag-name }}
         body: |
           ## What's Changed
-          
+
           See [CHANGELOG.md](https://github.com/hasanatkazmi/temporal-python/blob/main/CHANGELOG.md) for detailed changes.
-          
+
           ## Installation
-          
+
           ```bash
           pip install temporal-python==${{ steps.tag.outputs.tag-name }}
           ```
-          
+
           ## Full Changelog
-          
+
           **Full Changelog**: https://github.com/hasanatkazmi/temporal-python/compare/v0.0.1...${{ steps.tag.outputs.tag-name }}
         draft: false
         prerelease: false

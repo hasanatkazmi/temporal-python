@@ -9,7 +9,6 @@ from temporal.exceptions import InvalidArgumentError
 
 
 class TestInstant(unittest.TestCase):
-
     def test_constructor(self):
         """Test Instant constructor."""
         instant = Instant(1687438245.123456)

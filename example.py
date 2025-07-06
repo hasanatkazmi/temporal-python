@@ -2,10 +2,10 @@
 Example usage of the Python Temporal API.
 """
 
-from temporal import PlainDate, PlainTime, PlainDateTime, ZonedDateTime, Duration, Instant, TimeZone, Calendar
+from temporal import Calendar, Duration, Instant, PlainDate, PlainDateTime, PlainTime, TimeZone, ZonedDateTime
 
 
-def demonstrate_basic_types():
+def demonstrate_basic_types() -> None:
     """Demonstrate PlainDate, PlainTime, and PlainDateTime."""
     # 1. Working with PlainDate
     print("1. PlainDate Examples:")
@@ -64,7 +64,7 @@ def demonstrate_basic_types():
     print()
 
 
-def demonstrate_duration_and_zoned():
+def demonstrate_duration_and_zoned() -> TimeZone:
     """Demonstrate Duration and ZonedDateTime."""
     # 4. Working with Duration
     print("4. Duration Examples:")
@@ -110,7 +110,7 @@ def demonstrate_duration_and_zoned():
     return utc_tz
 
 
-def demonstrate_instant_and_comparison(utc_tz):
+def demonstrate_instant_and_comparison(utc_tz: TimeZone) -> None:
     """Demonstrate Instant and comparison operations."""
     # 6. Working with Instant
     print("6. Instant Examples:")
@@ -149,7 +149,7 @@ def demonstrate_instant_and_comparison(utc_tz):
     print()
 
 
-def demonstrate_error_handling():
+def demonstrate_error_handling() -> None:
     """Demonstrate error handling."""
     print("8. Error Handling Examples:")
     try:
@@ -169,7 +169,7 @@ def demonstrate_error_handling():
     print()
 
 
-def demonstrate_advanced_usage():
+def demonstrate_advanced_usage() -> None:
     """Demonstrate advanced usage with business day calculations."""
     print("9. Advanced Usage - Business Day Calculation:")
 
@@ -193,7 +193,7 @@ def demonstrate_advanced_usage():
     print()
 
 
-def main():
+def main() -> None:
     """Demonstrate the Python Temporal API functionality."""
     print("=== Python Temporal API Examples ===\n")
 

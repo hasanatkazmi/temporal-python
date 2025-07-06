@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -47,14 +47,14 @@ jobs:
         python << 'EOF'
         import toml
         from packaging.version import Version
-        
+
         # Read current version
         with open('pyproject.toml', 'r') as f:
             config = toml.load(f)
-        
+
         current_version = Version(config['project']['version'])
         bump_type = "${{ github.event.inputs.bump_type }}"
-        
+
         # Calculate new version
         if bump_type == "major":
             new_version = Version(f"{current_version.major + 1}.0.0")
@@ -62,9 +62,9 @@ jobs:
             new_version = Version(f"{current_version.major}.{current_version.minor + 1}.0")
         else:  # patch
             new_version = Version(f"{current_version.major}.{current_version.minor}.{current_version.micro + 1}")
-        
+
         print(f"Bumping from {current_version} to {new_version} ({bump_type})")
-        
+
         # Write to outputs
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
             f.write(f"current_version={current_version}\n")
@@ -75,26 +75,26 @@ jobs:
       run: |
         python << 'EOF'
         import toml
-        
+
         new_version = "${{ steps.version.outputs.new_version }}"
-        
+
         # Update pyproject.toml
         with open('pyproject.toml', 'r') as f:
             config = toml.load(f)
         config['project']['version'] = new_version
         with open('pyproject.toml', 'w') as f:
             toml.dump(config, f)
-        
+
         # Update __init__.py
         with open('temporal/__init__.py', 'r') as f:
             content = f.read()
-        
+
         import re
         content = re.sub(r'__version__ = ".*"', f'__version__ = "{new_version}"', content)
-        
+
         with open('temporal/__init__.py', 'w') as f:
             f.write(content)
-        
+
         print(f"Updated version to {new_version}")
         EOF
 
@@ -102,18 +102,18 @@ jobs:
       run: |
         python << 'EOF'
         import datetime
-        
+
         version = "${{ steps.version.outputs.new_version }}"
         bump_type = "${{ github.event.inputs.bump_type }}"
         current_date = datetime.date.today().strftime("%Y-%m-%d")
-        
+
         # Read current CHANGELOG
         with open('CHANGELOG.md', 'r') as f:
             content = f.read()
-        
+
         # Create new entry
         new_entry = f"## [{version}] - {current_date}\n\n### Changed\n- Manual {bump_type} version bump\n\n"
-        
+
         # Insert after the header
         lines = content.split('\n')
         for i, line in enumerate(lines):
@@ -134,9 +134,9 @@ jobs:
                         header_lines.append(line)
                 else:
                     content_lines.append(line)
-            
+
             lines = header_lines + [new_entry] + content_lines
-        
+
         with open('CHANGELOG.md', 'w') as f:
             f.write('\n'.join(lines))
         EOF
@@ -145,14 +145,14 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        
+
         git add pyproject.toml temporal/__init__.py CHANGELOG.md
-        
+
         commit_msg="Release v${{ steps.version.outputs.new_version }}"
         if [ "${{ github.event.inputs.skip_ci }}" = "true" ]; then
           commit_msg="$commit_msg [skip ci]"
         fi
-        
+
         git commit -m "$commit_msg"
         git tag "v${{ steps.version.outputs.new_version }}"
 
@@ -170,9 +170,9 @@ jobs:
         release_name: "Release v${{ steps.version.outputs.new_version }}"
         body: |
           ## Version ${{ steps.version.outputs.new_version }}
-          
+
           **Type**: Manual ${{ github.event.inputs.bump_type }} version update
-          
+
           ### Installation
           ```bash
           pip install temporal-python==${{ steps.version.outputs.new_version }}

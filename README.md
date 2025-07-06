@@ -54,7 +54,7 @@ pip install -e .
 ## Quick Start
 
 ```python
-from temporal import (PlainDate, PlainTime, PlainDateTime, PlainYearMonth, 
+from temporal import (PlainDate, PlainTime, PlainDateTime, PlainYearMonth,
                      PlainMonthDay, Duration, TimeZone, ZonedDateTime, Instant)
 
 # Working with dates
@@ -298,7 +298,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 This project uses automatic semantic versioning:
 - **Patch** bumps (bug fixes) happen automatically on every merge to main
-- **Minor** bumps (new features) use `feat:` commits or `version:minor` PR labels  
+- **Minor** bumps (new features) use `feat:` commits or `version:minor` PR labels
 - **Major** bumps (breaking changes) use `BREAKING CHANGE:` commits or `version:major` PR labels
 - Skip versioning with `[skip version]` in commits or `no-version-bump` PR labels
 

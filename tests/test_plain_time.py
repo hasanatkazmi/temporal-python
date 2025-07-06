@@ -9,7 +9,6 @@ from temporal.exceptions import InvalidArgumentError, RangeError
 
 
 class TestPlainTime(unittest.TestCase):
-
     def test_constructor(self):
         """Test PlainTime constructor."""
         time = PlainTime(14, 30, 45, 123456)

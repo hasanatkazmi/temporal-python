@@ -9,7 +9,6 @@ from temporal.exceptions import InvalidArgumentError, RangeError
 
 
 class TestPlainDateTime(unittest.TestCase):
-
     def test_constructor(self):
         """Test PlainDateTime constructor."""
         dt = PlainDateTime(2023, 6, 15, 14, 30, 45, 123456)

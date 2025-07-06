@@ -108,11 +108,11 @@ class TestNewFeature:
     def test_basic_functionality(self):
         """Test basic usage of the new feature."""
         # Test implementation
-        
+
     def test_edge_cases(self):
         """Test edge cases and boundary conditions."""
         # Edge case tests
-        
+
     def test_error_conditions(self):
         """Test that appropriate errors are raised."""
         with pytest.raises(ExpectedError):

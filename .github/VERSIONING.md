@@ -21,7 +21,7 @@ Every merge to the `main` branch automatically triggers a **patch version bump**
 Add one of these labels to your PR:
 
 - 🔴 `version:major` - Triggers major version bump (breaking changes)
-- 🟡 `version:minor` - Triggers minor version bump (new features)  
+- 🟡 `version:minor` - Triggers minor version bump (new features)
 - 🔵 `version:patch` - Triggers patch version bump (bug fixes) - **DEFAULT**
 - ⚪ `no-version-bump` - Skips automatic versioning
 

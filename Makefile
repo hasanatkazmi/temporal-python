@@ -83,13 +83,13 @@ docs:
 	@python -c "
 	# Test README examples
 	from temporal import PlainDate, PlainYearMonth, PlainMonthDay, Duration, Instant
-	
+
 	# Test basic functionality
 	date = PlainDate(2023, 6, 15)
 	ym = PlainYearMonth(2023, 6)
 	md = PlainMonthDay(8, 24)
 	duration = Duration(days=1, hours=2)
-	
+
 	print('✅ README examples validated')
 	"
 

@@ -14,7 +14,16 @@
       "Bash(pip install:*)",
       "Bash(isort:*)",
       "Bash(git pull:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(flake8:*)",
+      "Bash(mypy:*)",
+      "Bash(black:*)",
+      "Bash(ls:*)",
+      "Bash(env/bin/python -m pytest tests/ --cov=temporal --cov-report=term-missing)",
+      "Bash(env/bin/python -m flake8:*)",
+      "Bash(env/bin/python -m pytest tests/ -v)",
+      "Bash(pre-commit run:*)",
+      "Bash(pre-commit:*)"
     ],
     "deny": []
   }
