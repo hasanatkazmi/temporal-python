@@ -6,12 +6,15 @@ Represents a year-month combination without a specific day.
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from .calendar import Calendar
 from .duration import Duration
 from .exceptions import InvalidArgumentError, RangeError, TemporalError
 from .utils import get_days_in_month, is_leap_year, pad_zero, validate_date_fields
+
+if TYPE_CHECKING:
+    from .plain_date import PlainDate
 
 
 class PlainYearMonth:
@@ -24,14 +27,14 @@ class PlainYearMonth:
     def __init__(self, year: int, month: int, calendar: Optional[Calendar] = None):
         """
         Initialize a PlainYearMonth.
-        
+
         Args:
             year: The year (any integer)
             month: The month (1-12)
             calendar: The calendar system (defaults to ISO 8601)
         """
         validate_date_fields(year, month, 1)  # Use day=1 for validation
-        
+
         self._year = year
         self._month = month
         self._calendar = calendar or Calendar.from_string("iso8601")
@@ -74,10 +77,10 @@ class PlainYearMonth:
     def add(self, duration: Duration) -> PlainYearMonth:
         """
         Add a duration to this PlainYearMonth.
-        
+
         Args:
             duration: The duration to add
-            
+
         Returns:
             A new PlainYearMonth with the duration added
         """
@@ -94,7 +97,7 @@ class PlainYearMonth:
         # Add months
         if duration.months:
             new_month += duration.months
-            
+
             # Handle month overflow
             while new_month > 12:
                 new_month -= 12
@@ -112,10 +115,10 @@ class PlainYearMonth:
     def subtract(self, other: Union[Duration, PlainYearMonth]) -> Union[PlainYearMonth, Duration]:
         """
         Subtract a duration or another PlainYearMonth from this PlainYearMonth.
-        
+
         Args:
             other: The duration or PlainYearMonth to subtract
-            
+
         Returns:
             A new PlainYearMonth (if subtracting duration) or Duration (if subtracting PlainYearMonth)
         """
@@ -129,10 +132,10 @@ class PlainYearMonth:
     def until(self, other: PlainYearMonth) -> Duration:
         """
         Calculate the duration from this PlainYearMonth to another.
-        
+
         Args:
             other: The target PlainYearMonth
-            
+
         Returns:
             A Duration representing the difference
         """
@@ -144,7 +147,7 @@ class PlainYearMonth:
 
         # Calculate total months difference
         total_months = years_diff * 12 + months_diff
-        
+
         # Convert to years and months
         if total_months >= 0:
             final_years = total_months // 12
@@ -162,10 +165,10 @@ class PlainYearMonth:
     def since(self, other: PlainYearMonth) -> Duration:
         """
         Calculate the duration from another PlainYearMonth to this one.
-        
+
         Args:
             other: The source PlainYearMonth
-            
+
         Returns:
             A Duration representing the difference
         """
@@ -174,47 +177,46 @@ class PlainYearMonth:
     def with_fields(self, **kwargs) -> PlainYearMonth:
         """
         Create a new PlainYearMonth with modified fields.
-        
+
         Args:
             **kwargs: Fields to modify (year, month, calendar)
-            
+
         Returns:
             A new PlainYearMonth with modified fields
         """
-        new_year = kwargs.get('year', self._year)
-        new_month = kwargs.get('month', self._month)
-        new_calendar = kwargs.get('calendar', self._calendar)
+        new_year = kwargs.get("year", self._year)
+        new_month = kwargs.get("month", self._month)
+        new_calendar = kwargs.get("calendar", self._calendar)
 
         return PlainYearMonth(new_year, new_month, new_calendar)
 
     def to_plain_date(self, day: int) -> PlainDate:
         """
         Convert to a PlainDate by specifying a day.
-        
+
         Args:
             day: The day of the month (1-31)
-            
+
         Returns:
             A PlainDate with the specified day
         """
         from .plain_date import PlainDate
+
         return PlainDate(self._year, self._month, day, self._calendar)
 
     def equals(self, other: PlainYearMonth) -> bool:
         """
         Check if this PlainYearMonth equals another.
-        
+
         Args:
             other: The PlainYearMonth to compare
-            
+
         Returns:
             True if equal, False otherwise
         """
         if not isinstance(other, PlainYearMonth):
             return False
-        return (self._year == other._year and 
-                self._month == other._month and 
-                self._calendar.id == other._calendar.id)
+        return self._year == other._year and self._month == other._month and self._calendar.id == other._calendar.id
 
     def __str__(self) -> str:
         """String representation in ISO 8601 format (YYYY-MM)."""
@@ -264,56 +266,56 @@ class PlainYearMonth:
     def from_string(year_month_string: str) -> PlainYearMonth:
         """
         Create a PlainYearMonth from an ISO 8601 string.
-        
+
         Args:
             year_month_string: String in format 'YYYY-MM'
-            
+
         Returns:
             A new PlainYearMonth
         """
         # Match YYYY-MM format
-        pattern = r'^(\d{4})-(\d{2})$'
+        pattern = r"^(\d{4})-(\d{2})$"
         match = re.match(pattern, year_month_string)
-        
+
         if not match:
             raise InvalidArgumentError(f"Invalid PlainYearMonth string: {year_month_string}")
-        
+
         year = int(match.group(1))
         month = int(match.group(2))
-        
+
         return PlainYearMonth(year, month)
 
     @staticmethod
     def from_fields(fields: Dict[str, Any]) -> PlainYearMonth:
         """
         Create a PlainYearMonth from a dictionary of fields.
-        
+
         Args:
             fields: Dictionary with year, month, and optional calendar
-            
+
         Returns:
             A new PlainYearMonth
         """
-        year = fields.get('year')
-        month = fields.get('month')
-        calendar = fields.get('calendar')
-        
+        year = fields.get("year")
+        month = fields.get("month")
+        calendar = fields.get("calendar")
+
         if year is None or month is None:
             raise InvalidArgumentError("year and month are required")
-        
+
         if calendar and isinstance(calendar, str):
             calendar = Calendar.from_string(calendar)
-        
+
         return PlainYearMonth(year, month, calendar)
 
     @staticmethod
     def from_date(date) -> PlainYearMonth:
         """
         Create a PlainYearMonth from a date-like object.
-        
+
         Args:
             date: Object with year and month attributes
-            
+
         Returns:
             A new PlainYearMonth
         """
@@ -323,17 +325,17 @@ class PlainYearMonth:
     def compare(a: PlainYearMonth, b: PlainYearMonth) -> int:
         """
         Compare two PlainYearMonth objects.
-        
+
         Args:
             a: First PlainYearMonth
             b: Second PlainYearMonth
-            
+
         Returns:
             -1 if a < b, 0 if a == b, 1 if a > b
         """
         if not isinstance(a, PlainYearMonth) or not isinstance(b, PlainYearMonth):
             raise InvalidArgumentError("Both arguments must be PlainYearMonth")
-        
+
         if a < b:
             return -1
         elif a > b:
@@ -345,10 +347,10 @@ class PlainYearMonth:
     def from_any(cls, value: Union[str, dict, PlainYearMonth]) -> PlainYearMonth:
         """
         Create a PlainYearMonth from various input types.
-        
+
         Args:
             value: String, dict, or PlainYearMonth
-            
+
         Returns:
             A new PlainYearMonth
         """

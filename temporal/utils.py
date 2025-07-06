@@ -8,20 +8,14 @@ from typing import Any, Dict, Optional, Tuple
 from .exceptions import InvalidArgumentError, RangeError
 
 # ISO 8601 regex patterns
-ISO_DATE_PATTERN = re.compile(
-    r'^(\d{4})-(\d{2})-(\d{2})$'
-)
+ISO_DATE_PATTERN = re.compile(r"^(\d{4})-(\d{2})-(\d{2})$")
 
-ISO_TIME_PATTERN = re.compile(
-    r'^(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?$'
-)
+ISO_TIME_PATTERN = re.compile(r"^(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?$")
 
-ISO_DATETIME_PATTERN = re.compile(
-    r'^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?$'
-)
+ISO_DATETIME_PATTERN = re.compile(r"^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?$")
 
 ISO_DURATION_PATTERN = re.compile(
-    r'^P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$'
+    r"^P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$"
 )
 
 
@@ -33,14 +27,14 @@ def validate_date_fields(year: int, month: int, day: int) -> None:
         raise InvalidArgumentError("Month must be an integer")
     if not isinstance(day, int):
         raise InvalidArgumentError("Day must be an integer")
-    
+
     if year < 1 or year > 9999:
         raise RangeError(f"Year {year} is out of range (1-9999)")
     if month < 1 or month > 12:
         raise RangeError(f"Month {month} is out of range (1-12)")
     if day < 1:
         raise RangeError(f"Day {day} is out of range (must be >= 1)")
-    
+
     # Check day against month limits
     days_in_month = get_days_in_month(year, month)
     if day > days_in_month:
@@ -57,7 +51,7 @@ def validate_time_fields(hour: int, minute: int, second: int, microsecond: int =
         raise InvalidArgumentError("Second must be an integer")
     if not isinstance(microsecond, int):
         raise InvalidArgumentError("Microsecond must be an integer")
-    
+
     if hour < 0 or hour > 23:
         raise RangeError(f"Hour {hour} is out of range (0-23)")
     if minute < 0 or minute > 59:
@@ -87,7 +81,7 @@ def parse_iso_date(date_string: str) -> Tuple[int, int, int]:
     match = ISO_DATE_PATTERN.match(date_string)
     if not match:
         raise InvalidArgumentError(f"Invalid ISO date format: {date_string}")
-    
+
     year, month, day = map(int, match.groups())
     validate_date_fields(year, month, day)
     return year, month, day
@@ -98,16 +92,16 @@ def parse_iso_time(time_string: str) -> Tuple[int, int, int, int]:
     match = ISO_TIME_PATTERN.match(time_string)
     if not match:
         raise InvalidArgumentError(f"Invalid ISO time format: {time_string}")
-    
+
     hour, minute, second, fraction = match.groups()
     hour, minute, second = int(hour), int(minute), int(second)
-    
+
     microsecond = 0
     if fraction:
         # Pad or truncate to 6 digits for microseconds
-        fraction = fraction.ljust(6, '0')[:6]
+        fraction = fraction.ljust(6, "0")[:6]
         microsecond = int(fraction)
-    
+
     validate_time_fields(hour, minute, second, microsecond)
     return hour, minute, second, microsecond
 
@@ -117,16 +111,16 @@ def parse_iso_datetime(datetime_string: str) -> Tuple[int, int, int, int, int, i
     match = ISO_DATETIME_PATTERN.match(datetime_string)
     if not match:
         raise InvalidArgumentError(f"Invalid ISO datetime format: {datetime_string}")
-    
+
     year, month, day, hour, minute, second, fraction = match.groups()
     year, month, day = int(year), int(month), int(day)
     hour, minute, second = int(hour), int(minute), int(second)
-    
+
     microsecond = 0
     if fraction:
-        fraction = fraction.ljust(6, '0')[:6]
+        fraction = fraction.ljust(6, "0")[:6]
         microsecond = int(fraction)
-    
+
     validate_date_fields(year, month, day)
     validate_time_fields(hour, minute, second, microsecond)
     return year, month, day, hour, minute, second, microsecond
@@ -141,4 +135,4 @@ def format_microseconds(microsecond: int) -> str:
     """Format microseconds, removing trailing zeros."""
     if microsecond == 0:
         return ""
-    return f".{microsecond:06d}".rstrip('0')
+    return f".{microsecond:06d}".rstrip("0")

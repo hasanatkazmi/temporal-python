@@ -20,7 +20,7 @@ from .zoned_date_time import ZonedDateTime
 __version__ = "1.0.6"
 __all__ = [
     "PlainDate",
-    "PlainTime", 
+    "PlainTime",
     "PlainDateTime",
     "PlainYearMonth",
     "PlainMonthDay",
@@ -32,5 +32,5 @@ __all__ = [
     "TemporalError",
     "RangeError",
     "TemporalTypeError",
-    "InvalidArgumentError"
+    "InvalidArgumentError",
 ]
