@@ -35,4 +35,4 @@ __all__ = [
     "InvalidArgumentError",
 ]
 
-# PyPI publishing with CI dependency checks
+# Fixed deprecated actions - testing CI-dependent PyPI publishing
