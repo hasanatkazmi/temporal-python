@@ -13,8 +13,47 @@ on:
     branches: [ main ]
 
 jobs:
-  auto-version:
+  # Wait for all CI checks to pass before proceeding
+  wait-for-checks:
+    runs-on: ubuntu-latest
     if: github.event_name == 'push' || (github.event.pull_request.merged == true)
+    steps:
+    - name: Wait for CI workflows to complete
+      uses: lewagon/wait-on-check-action@v1.3.4
+      with:
+        ref: ${{ github.ref }}
+        check-name: 'test'  # CI workflow job name
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        wait-interval: 10
+
+    - name: Wait for Pre-commit to complete
+      uses: lewagon/wait-on-check-action@v1.3.4
+      with:
+        ref: ${{ github.ref }}
+        check-name: 'pre-commit'
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        wait-interval: 10
+
+    - name: Wait for Documentation to complete
+      uses: lewagon/wait-on-check-action@v1.3.4
+      with:
+        ref: ${{ github.ref }}
+        check-name: 'docs'
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        wait-interval: 10
+
+    - name: Wait for CodeQL to complete
+      uses: lewagon/wait-on-check-action@v1.3.4
+      with:
+        ref: ${{ github.ref }}
+        check-name: 'analyze'  # CodeQL job name
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        wait-interval: 10
+        allowed-conclusions: success,skipped  # Allow skipped for CodeQL
+
+  # Only proceed with version bump and PyPI publishing if all CI checks pass
+  auto-version:
+    needs: wait-for-checks
     runs-on: ubuntu-latest
     permissions:
       contents: write
