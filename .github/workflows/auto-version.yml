@@ -1,13 +1,6 @@
 name: Auto Version Update
 
 on:
-  push:
-    branches: [ main ]
-    paths-ignore:
-      - 'CHANGELOG.md'
-      - '.github/**'
-      - 'README.md'
-      - 'docs/**'
   pull_request:
     types: [ closed ]
     branches: [ main ]
@@ -16,7 +9,7 @@ jobs:
   # Wait for all CI checks to pass before proceeding
   wait-for-checks:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || (github.event.pull_request.merged == true)
+    if: github.event.pull_request.merged == true
     steps:
     - name: Wait for CI workflows to complete
       run: |
@@ -279,56 +272,48 @@ jobs:
         pip install pytest
         pytest tests/ -x -q
 
-    - name: Commit version update
+    - name: Create version bump branch and PR
       if: steps.should-update.outputs.should_update == 'true'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
+
+        # Create new branch for version bump
+        branch_name="version-bump-${{ steps.version.outputs.new_version }}"
+        git checkout -b "$branch_name"
+
+        # Commit changes
         git add pyproject.toml temporal/__init__.py CHANGELOG.md
-        git commit -m "Bump version to ${{ steps.version.outputs.new_version }}" || exit 0
+        git commit -m "Bump version to ${{ steps.version.outputs.new_version }}"
 
-    - name: Push changes
-      if: steps.should-update.outputs.should_update == 'true'
-      run: |
-        git push origin main
+        # Push branch
+        git push origin "$branch_name"
 
-    - name: Create and push tag
-      if: steps.should-update.outputs.should_update == 'true'
-      run: |
-        git tag "v${{ steps.version.outputs.new_version }}"
-        git push origin "v${{ steps.version.outputs.new_version }}"
+        # Create PR
+        gh pr create \
+          --title "🔖 Bump version to ${{ steps.version.outputs.new_version }}" \
+          --body "$(cat <<'EOF'
+        ## Auto Version Bump
 
-    - name: Build package
-      if: steps.should-update.outputs.should_update == 'true'
-      run: |
-        pip install build
-        python -m build
+        **Type**: ${{ steps.version-type.outputs.bump_type }} version update
+        **Version**: ${{ steps.version.outputs.current_version }} → ${{ steps.version.outputs.new_version }}
 
-    - name: Publish package to PyPI
-      if: steps.should-update.outputs.should_update == 'true'
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        password: ${{ secrets.PYPI_API_TOKEN }}
+        ### Changes
+        - Updated version in \`pyproject.toml\` and \`temporal/__init__.py\`
+        - Updated \`CHANGELOG.md\` with new version entry
 
-    - name: Create GitHub Release
-      if: steps.should-update.outputs.should_update == 'true'
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: "v${{ steps.version.outputs.new_version }}"
-        name: "Release v${{ steps.version.outputs.new_version }}"
-        body: |
-          ## Version ${{ steps.version.outputs.new_version }}
+        ### After Merge
+        This PR will automatically:
+        - Create git tag \`v${{ steps.version.outputs.new_version }}\`
+        - Build and publish package to PyPI
+        - Create GitHub release
 
-          **Type**: ${{ steps.version-type.outputs.bump_type }} version update
-
-          ### Changes
-          See [CHANGELOG.md](https://github.com/hasanatkazmi/temporal-python/blob/main/CHANGELOG.md) for detailed changes.
-
-          ### Installation
-          ```bash
-          pip install temporal-python==${{ steps.version.outputs.new_version }}
-          ```
-
-          **Full Changelog**: https://github.com/hasanatkazmi/temporal-python/compare/v${{ steps.version.outputs.current_version }}...v${{ steps.version.outputs.new_version }}
-        draft: false
-        prerelease: false
+        🤖 This PR was created automatically by the Auto Version Update workflow.
+        EOF
+        )" \
+          --head "$branch_name" \
+          --base main \
+          --label "version-bump" \
+          --label "automated"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
