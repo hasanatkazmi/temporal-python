@@ -36,7 +36,7 @@ Changelog = "https://github.com/hasanatkazmi/temporal-python/blob/main/CHANGELOG
 
 [tool.black]
 line-length = 127
-target-version = [ "py37", "py38", "py39", "py310", "py311", "py312",]
+target-version = [ "py37", "py38", "py39", "py310", "py311",]
 include = "\\.pyi?$"
 extend-exclude = "/(\n  # directories\n  \\.eggs\n  | \\.git\n  | \\.hg\n  | \\.mypy_cache\n  | \\.tox\n  | \\.venv\n  | build\n  | dist\n)/\n"
 
