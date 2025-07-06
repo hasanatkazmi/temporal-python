@@ -24,6 +24,12 @@ The Temporal API provides a modern approach to working with dates and times in P
 
 ## Installation
 
+### From PyPI
+
+```bash
+pip install temporal-python
+```
+
 ### From Source
 
 ```bash
