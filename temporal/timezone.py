@@ -16,6 +16,9 @@ except ImportError:
     except ImportError:
         raise ImportError("zoneinfo is required. Install backports.zoneinfo for Python < 3.9")
 
+# Import datetime timezone for basic UTC support as fallback
+from datetime import timezone as dt_timezone
+
 
 class TimeZone:
     """Represents a time zone."""
@@ -26,7 +29,45 @@ class TimeZone:
             self._zone_info = ZoneInfo(identifier)
             self._identifier = identifier
         except Exception as e:
-            raise InvalidArgumentError(f"Invalid timezone identifier: {identifier}") from e
+            # Fallback for Windows when tzdata is not available
+            if identifier.upper() == "UTC":
+                self._zone_info = dt_timezone.utc
+                self._identifier = identifier
+            else:
+                # Try to handle common timezone abbreviations as UTC offsets
+                if self._try_parse_offset(identifier):
+                    return
+                raise InvalidArgumentError(
+                    f"Invalid timezone identifier: {identifier}. On Windows, install tzdata package for full timezone support."
+                ) from e
+
+    def _try_parse_offset(self, identifier: str) -> bool:
+        """Try to parse timezone as UTC offset (e.g., '+05:00', '-08:00')."""
+        import re
+
+        # Match patterns like +05:00, -08:00, +0530, etc.
+        offset_pattern = r"^([+-])(\d{1,2}):?(\d{2})$"
+        match = re.match(offset_pattern, identifier)
+
+        if match:
+            sign, hours_str, minutes_str = match.groups()
+            hours = int(hours_str)
+            minutes = int(minutes_str)
+
+            if hours > 23 or minutes > 59:
+                return False
+
+            total_minutes = hours * 60 + minutes
+            if sign == "-":
+                total_minutes = -total_minutes
+
+            from datetime import timedelta
+
+            self._zone_info = dt_timezone(timedelta(minutes=total_minutes))
+            self._identifier = identifier
+            return True
+
+        return False
 
     @property
     def id(self) -> str:
@@ -57,6 +98,6 @@ class TimeZone:
         return cls(timezone_string)
 
     @property
-    def zone_info(self) -> ZoneInfo:
-        """Get the underlying ZoneInfo object."""
+    def zone_info(self):
+        """Get the underlying timezone object (ZoneInfo or datetime.timezone)."""
         return self._zone_info

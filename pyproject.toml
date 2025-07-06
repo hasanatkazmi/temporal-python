@@ -10,7 +10,7 @@ readme = "README.md"
 classifiers = [ "Development Status :: 5 - Production/Stable", "Intended Audience :: Developers", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3.7", "Programming Language :: Python :: 3.8", "Programming Language :: Python :: 3.9", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12", "Topic :: Software Development :: Libraries :: Python Modules", "Topic :: Utilities", "Typing :: Typed",]
 keywords = [ "temporal", "date", "time", "datetime", "timezone", "duration", "calendar", "iso8601",]
 requires-python = ">=3.7"
-dependencies = [ "backports.zoneinfo; python_version<'3.9'",]
+dependencies = [ "backports.zoneinfo; python_version<'3.9'", "tzdata; sys_platform=='win32'",]
 [[project.authors]]
 name = "Hasanat Kazmi"
 email = "hasanatkazmi@gmail.com"
