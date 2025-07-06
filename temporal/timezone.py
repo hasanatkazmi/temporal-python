@@ -4,6 +4,7 @@ TimeZone implementation for the Temporal API.
 
 import sys
 from typing import Optional, Union
+
 from .exceptions import InvalidArgumentError
 
 # Import zoneinfo for Python 3.9+, fallback to backports.zoneinfo for older versions

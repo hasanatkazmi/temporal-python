@@ -2,12 +2,13 @@
 ZonedDateTime implementation for the Temporal API.
 """
 
-from typing import Union, Optional
 from datetime import datetime
-from .utils import validate_date_fields, validate_time_fields, pad_zero, format_microseconds
+from typing import Optional, Union
+
 from .calendar import Calendar
-from .timezone import TimeZone
 from .exceptions import InvalidArgumentError
+from .timezone import TimeZone
+from .utils import format_microseconds, pad_zero, validate_date_fields, validate_time_fields
 
 
 class ZonedDateTime:

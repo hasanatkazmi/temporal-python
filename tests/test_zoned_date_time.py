@@ -3,7 +3,8 @@ Tests for ZonedDateTime class.
 """
 
 import unittest
-from temporal import ZonedDateTime, TimeZone, Calendar, Duration
+
+from temporal import Calendar, Duration, TimeZone, ZonedDateTime
 from temporal.exceptions import InvalidArgumentError
 
 

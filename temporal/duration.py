@@ -2,8 +2,9 @@
 Duration implementation for the Temporal API.
 """
 
-from typing import Union, Optional
 import re
+from typing import Optional, Union
+
 from .exceptions import InvalidArgumentError, RangeError
 
 

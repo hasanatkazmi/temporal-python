@@ -3,7 +3,8 @@ Tests for PlainTime class.
 """
 
 import unittest
-from temporal import PlainTime, Duration
+
+from temporal import Duration, PlainTime
 from temporal.exceptions import InvalidArgumentError, RangeError
 
 

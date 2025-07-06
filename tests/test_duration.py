@@ -3,6 +3,7 @@ Tests for Duration class.
 """
 
 import unittest
+
 from temporal import Duration
 from temporal.exceptions import InvalidArgumentError
 

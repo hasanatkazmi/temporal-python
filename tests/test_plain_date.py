@@ -3,7 +3,8 @@ Tests for PlainDate class.
 """
 
 import unittest
-from temporal import PlainDate, Duration, Calendar
+
+from temporal import Calendar, Duration, PlainDate
 from temporal.exceptions import InvalidArgumentError, RangeError
 
 

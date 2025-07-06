@@ -4,11 +4,13 @@ Represents a month-day combination without a year.
 """
 
 from __future__ import annotations
-from typing import Union, Dict, Any, Optional
+
 import re
+from typing import Any, Dict, Optional, Union
+
 from .calendar import Calendar
-from .exceptions import TemporalError, RangeError, InvalidArgumentError
-from .utils import validate_date_fields, get_days_in_month, pad_zero
+from .exceptions import InvalidArgumentError, RangeError, TemporalError
+from .utils import get_days_in_month, pad_zero, validate_date_fields
 
 
 class PlainMonthDay:
@@ -101,7 +103,7 @@ class PlainMonthDay:
         """
         from .plain_date import PlainDate
         from .utils import is_leap_year
-        
+
         # Check if February 29 is valid for this year
         if self._month == 2 and self._day == 29 and not is_leap_year(year):
             raise RangeError(f"February 29 is not valid in year {year} (not a leap year)")

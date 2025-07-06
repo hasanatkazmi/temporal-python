@@ -2,7 +2,8 @@
 Calendar system implementation for the Temporal API.
 """
 
-from typing import Dict, Any
+from typing import Any, Dict
+
 from .exceptions import InvalidArgumentError
 
 

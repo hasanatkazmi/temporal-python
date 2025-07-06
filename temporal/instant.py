@@ -2,8 +2,9 @@
 Instant implementation for the Temporal API.
 """
 
-from typing import Union, Optional
 from datetime import datetime, timezone
+from typing import Optional, Union
+
 from .duration import Duration
 from .exceptions import InvalidArgumentError, RangeError
 

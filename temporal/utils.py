@@ -3,7 +3,8 @@ Utility functions for the Temporal API.
 """
 
 import re
-from typing import Dict, Any, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
+
 from .exceptions import InvalidArgumentError, RangeError
 
 # ISO 8601 regex patterns

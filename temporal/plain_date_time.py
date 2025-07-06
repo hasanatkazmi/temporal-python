@@ -2,12 +2,12 @@
 PlainDateTime implementation for the Temporal API.
 """
 
-from typing import Union, Optional
 from datetime import datetime
-from .utils import (validate_date_fields, validate_time_fields, parse_iso_datetime, 
-                   pad_zero, format_microseconds)
+from typing import Optional, Union
+
 from .calendar import Calendar
 from .exceptions import InvalidArgumentError
+from .utils import format_microseconds, pad_zero, parse_iso_datetime, validate_date_fields, validate_time_fields
 
 
 class PlainDateTime:

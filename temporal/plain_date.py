@@ -2,11 +2,12 @@
 PlainDate implementation for the Temporal API.
 """
 
-from typing import Union, Optional
 from datetime import date
-from .utils import validate_date_fields, parse_iso_date, pad_zero, get_days_in_month
+from typing import Optional, Union
+
 from .calendar import Calendar
 from .exceptions import InvalidArgumentError, RangeError
+from .utils import get_days_in_month, pad_zero, parse_iso_date, validate_date_fields
 
 
 class PlainDate:
@@ -136,8 +137,8 @@ class PlainDate:
     
     def to_plain_datetime(self, time=None) -> 'PlainDateTime':
         """Convert to PlainDateTime by adding time."""
-        from .plain_time import PlainTime
         from .plain_date_time import PlainDateTime
+        from .plain_time import PlainTime
         
         if time is None:
             time = PlainTime(0, 0, 0)

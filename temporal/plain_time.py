@@ -2,9 +2,10 @@
 PlainTime implementation for the Temporal API.
 """
 
-from typing import Union, Optional
-from .utils import validate_time_fields, parse_iso_time, pad_zero, format_microseconds
+from typing import Optional, Union
+
 from .exceptions import InvalidArgumentError, RangeError
+from .utils import format_microseconds, pad_zero, parse_iso_time, validate_time_fields
 
 
 class PlainTime:

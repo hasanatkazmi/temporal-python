@@ -3,7 +3,8 @@ Tests for Instant class.
 """
 
 import unittest
-from temporal import Instant, Duration, TimeZone
+
+from temporal import Duration, Instant, TimeZone
 from temporal.exceptions import InvalidArgumentError
 
 

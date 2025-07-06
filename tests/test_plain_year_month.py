@@ -3,7 +3,8 @@ Tests for PlainYearMonth class.
 """
 
 import pytest
-from temporal import PlainYearMonth, Duration, PlainDate
+
+from temporal import Duration, PlainDate, PlainYearMonth
 from temporal.exceptions import InvalidArgumentError, RangeError
 
 
