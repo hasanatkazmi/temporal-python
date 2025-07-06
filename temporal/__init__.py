@@ -17,7 +17,7 @@ from .plain_year_month import PlainYearMonth
 from .timezone import TimeZone
 from .zoned_date_time import ZonedDateTime
 
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 __all__ = [
     "PlainDate",
     "PlainTime",
