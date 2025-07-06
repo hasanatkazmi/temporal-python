@@ -35,4 +35,4 @@ __all__ = [
     "InvalidArgumentError",
 ]
 
-# Testing custom wait-for-checks with GitHub API
+# PR-based development workflow active
