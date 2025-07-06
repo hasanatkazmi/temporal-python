@@ -183,3 +183,128 @@ class Instant:
     def from_epoch_microseconds(cls, microseconds: float) -> 'Instant':
         """Create Instant from epoch microseconds."""
         return cls(microseconds / 1000000)
+    
+    def until(self, other: 'Instant') -> Duration:
+        """Calculate duration from this instant to another.
+        
+        Args:
+            other: The target instant
+            
+        Returns:
+            A Duration representing the difference
+        """
+        if not isinstance(other, Instant):
+            raise InvalidArgumentError("Expected Instant")
+        
+        return other.subtract(self)
+    
+    def since(self, other: 'Instant') -> Duration:
+        """Calculate duration from another instant to this one.
+        
+        Args:
+            other: The source instant
+            
+        Returns:
+            A Duration representing the difference
+        """
+        if not isinstance(other, Instant):
+            raise InvalidArgumentError("Expected Instant")
+        
+        return self.subtract(other)
+    
+    def round(self, options: Union[str, dict]) -> 'Instant':
+        """Round the instant to a specified increment.
+        
+        Args:
+            options: Either a string unit name or dict with 'smallestUnit' and optional 'roundingIncrement'
+            
+        Returns:
+            A new rounded Instant
+        """
+        if isinstance(options, str):
+            smallest_unit = options
+            rounding_increment = 1
+        elif isinstance(options, dict):
+            smallest_unit = options.get('smallestUnit', 'nanoseconds')
+            rounding_increment = options.get('roundingIncrement', 1)
+        else:
+            raise InvalidArgumentError("Options must be string or dict")
+        
+        # Convert to nanoseconds for precision
+        nanoseconds = self._epoch_seconds * 1_000_000_000
+        
+        if smallest_unit == 'seconds':
+            increment_ns = rounding_increment * 1_000_000_000
+        elif smallest_unit == 'milliseconds':
+            increment_ns = rounding_increment * 1_000_000
+        elif smallest_unit == 'microseconds':
+            increment_ns = rounding_increment * 1_000
+        elif smallest_unit == 'nanoseconds':
+            increment_ns = rounding_increment
+        else:
+            raise InvalidArgumentError(f"Invalid unit: {smallest_unit}")
+        
+        # Round to the nearest increment
+        rounded_ns = round(nanoseconds / increment_ns) * increment_ns
+        
+        return Instant(rounded_ns / 1_000_000_000)
+    
+    def equals(self, other: 'Instant') -> bool:
+        """Check if this instant equals another.
+        
+        Args:
+            other: The instant to compare
+            
+        Returns:
+            True if equal, False otherwise
+        """
+        return self == other
+    
+    def to_json(self) -> str:
+        """Convert to JSON string."""
+        return str(self)
+    
+    def to_locale_string(self, locale: str = "en-US") -> str:
+        """Convert to locale-specific string representation."""
+        # Basic implementation - could be enhanced with full locale support
+        return str(self)
+    
+    @staticmethod
+    def compare(a: 'Instant', b: 'Instant') -> int:
+        """Compare two Instant objects.
+        
+        Args:
+            a: First Instant
+            b: Second Instant
+            
+        Returns:
+            -1 if a < b, 0 if a == b, 1 if a > b
+        """
+        if not isinstance(a, Instant) or not isinstance(b, Instant):
+            raise InvalidArgumentError("Both arguments must be Instant")
+        
+        if a < b:
+            return -1
+        elif a > b:
+            return 1
+        else:
+            return 0
+    
+    @classmethod
+    def from_any(cls, value: Union[str, float, int, 'Instant']) -> 'Instant':
+        """Create an Instant from various input types.
+        
+        Args:
+            value: String, number, or Instant
+            
+        Returns:
+            A new Instant
+        """
+        if isinstance(value, Instant):
+            return value
+        elif isinstance(value, str):
+            return cls.from_string(value)
+        elif isinstance(value, (int, float)):
+            return cls(value)
+        else:
+            raise InvalidArgumentError(f"Cannot create Instant from {type(value)}")

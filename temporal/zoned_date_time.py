@@ -275,3 +275,174 @@ class ZonedDateTime:
         now = datetime.now(timezone.zone_info)
         return cls(now.year, now.month, now.day, now.hour, now.minute,
                   now.second, now.microsecond, timezone, calendar)
+    
+    def until(self, other: 'ZonedDateTime') -> 'Duration':
+        """Calculate duration from this zoned datetime to another.
+        
+        Args:
+            other: The target zoned datetime
+            
+        Returns:
+            A Duration representing the difference
+        """
+        if not isinstance(other, ZonedDateTime):
+            raise InvalidArgumentError("Expected ZonedDateTime")
+        
+        return other.subtract(self)
+    
+    def since(self, other: 'ZonedDateTime') -> 'Duration':
+        """Calculate duration from another zoned datetime to this one.
+        
+        Args:
+            other: The source zoned datetime
+            
+        Returns:
+            A Duration representing the difference
+        """
+        if not isinstance(other, ZonedDateTime):
+            raise InvalidArgumentError("Expected ZonedDateTime")
+        
+        return self.subtract(other)
+    
+    def round(self, options: Union[str, dict]) -> 'ZonedDateTime':
+        """Round the zoned datetime to a specified increment.
+        
+        Args:
+            options: Either a string unit name or dict with 'smallestUnit' and optional 'roundingIncrement'
+            
+        Returns:
+            A new rounded ZonedDateTime
+        """
+        # Convert to instant, round, then convert back
+        instant = self.to_instant()
+        rounded_instant = instant.round(options)
+        return rounded_instant.to_zoned_date_time(self._timezone)
+    
+    def with_plain_time(self, time: 'PlainTime') -> 'ZonedDateTime':
+        """Replace the time part with a new time.
+        
+        Args:
+            time: The new time to use
+            
+        Returns:
+            A new ZonedDateTime with the new time
+        """
+        from .plain_time import PlainTime
+        if not isinstance(time, PlainTime):
+            raise InvalidArgumentError("Expected PlainTime")
+        
+        return ZonedDateTime(
+            self._year, self._month, self._day,
+            time.hour, time.minute, time.second, time.microsecond,
+            self._timezone, self._calendar
+        )
+    
+    def with_calendar(self, calendar: Calendar) -> 'ZonedDateTime':
+        """Replace the calendar with a new calendar.
+        
+        Args:
+            calendar: The new calendar to use
+            
+        Returns:
+            A new ZonedDateTime with the new calendar
+        """
+        if not isinstance(calendar, Calendar):
+            raise InvalidArgumentError("Expected Calendar")
+        
+        return ZonedDateTime(
+            self._year, self._month, self._day,
+            self._hour, self._minute, self._second, self._microsecond,
+            self._timezone, calendar
+        )
+    
+    def start_of_day(self) -> 'ZonedDateTime':
+        """Get the start of the day (00:00:00) for this date in this timezone.
+        
+        Returns:
+            A new ZonedDateTime representing the start of the day
+        """
+        return ZonedDateTime(
+            self._year, self._month, self._day,
+            0, 0, 0, 0,
+            self._timezone, self._calendar
+        )
+    
+    def equals(self, other: 'ZonedDateTime') -> bool:
+        """Check if this zoned datetime equals another.
+        
+        Args:
+            other: The zoned datetime to compare
+            
+        Returns:
+            True if equal, False otherwise
+        """
+        return self == other
+    
+    def to_json(self) -> str:
+        """Convert to JSON string."""
+        return str(self)
+    
+    def to_locale_string(self, locale: str = "en-US") -> str:
+        """Convert to locale-specific string representation."""
+        # Basic implementation - could be enhanced with full locale support
+        return str(self)
+    
+    @staticmethod
+    def compare(a: 'ZonedDateTime', b: 'ZonedDateTime') -> int:
+        """Compare two ZonedDateTime objects.
+        
+        Args:
+            a: First ZonedDateTime
+            b: Second ZonedDateTime
+            
+        Returns:
+            -1 if a < b, 0 if a == b, 1 if a > b
+        """
+        if not isinstance(a, ZonedDateTime) or not isinstance(b, ZonedDateTime):
+            raise InvalidArgumentError("Both arguments must be ZonedDateTime")
+        
+        if a < b:
+            return -1
+        elif a > b:
+            return 1
+        else:
+            return 0
+    
+    @classmethod
+    def from_any(cls, value: Union[str, dict, 'ZonedDateTime']) -> 'ZonedDateTime':
+        """Create a ZonedDateTime from various input types.
+        
+        Args:
+            value: String, dict, or ZonedDateTime
+            
+        Returns:
+            A new ZonedDateTime
+        """
+        if isinstance(value, ZonedDateTime):
+            return value
+        elif isinstance(value, str):
+            return cls.from_string(value)
+        elif isinstance(value, dict):
+            year = value.get('year')
+            month = value.get('month')
+            day = value.get('day')
+            hour = value.get('hour', 0)
+            minute = value.get('minute', 0)
+            second = value.get('second', 0)
+            microsecond = value.get('microsecond', 0)
+            timezone = value.get('timezone')
+            calendar = value.get('calendar')
+            
+            if year is None or month is None or day is None or timezone is None:
+                raise InvalidArgumentError("year, month, day, and timezone are required")
+            
+            if isinstance(timezone, str):
+                from .timezone import TimeZone
+                timezone = TimeZone.from_string(timezone)
+            
+            if calendar and isinstance(calendar, str):
+                calendar = Calendar.from_string(calendar)
+            
+            return cls(year, month, day, hour, minute, second, microsecond, timezone, calendar)
+        else:
+            raise InvalidArgumentError(f"Cannot create ZonedDateTime from {type(value)}")

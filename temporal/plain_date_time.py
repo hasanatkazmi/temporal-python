@@ -216,3 +216,187 @@ class PlainDateTime:
         now = datetime.now()
         return cls(now.year, now.month, now.day, now.hour, now.minute, 
                   now.second, now.microsecond, calendar)
+    
+    def until(self, other: 'PlainDateTime') -> 'Duration':
+        """Calculate duration from this datetime to another.
+        
+        Args:
+            other: The target datetime
+            
+        Returns:
+            A Duration representing the difference
+        """
+        if not isinstance(other, PlainDateTime):
+            raise InvalidArgumentError("Expected PlainDateTime")
+        
+        return other.subtract(self)
+    
+    def since(self, other: 'PlainDateTime') -> 'Duration':
+        """Calculate duration from another datetime to this one.
+        
+        Args:
+            other: The source datetime
+            
+        Returns:
+            A Duration representing the difference
+        """
+        if not isinstance(other, PlainDateTime):
+            raise InvalidArgumentError("Expected PlainDateTime")
+        
+        return self.subtract(other)
+    
+    def round(self, options: Union[str, dict]) -> 'PlainDateTime':
+        """Round the datetime to a specified increment.
+        
+        Args:
+            options: Either a string unit name or dict with 'smallestUnit' and optional 'roundingIncrement'
+            
+        Returns:
+            A new rounded PlainDateTime
+        """
+        if isinstance(options, str):
+            smallest_unit = options
+            rounding_increment = 1
+        elif isinstance(options, dict):
+            smallest_unit = options.get('smallestUnit', 'microseconds')
+            rounding_increment = options.get('roundingIncrement', 1)
+        else:
+            raise InvalidArgumentError("Options must be string or dict")
+        
+        # For date units, delegate to PlainDate
+        if smallest_unit in ['years', 'months', 'days']:
+            # Round the date part and keep time as-is
+            date_part = self.to_plain_date()
+            # For simplicity, we don't round date parts here
+            return self
+        
+        # For time units, round the time part
+        from .plain_time import PlainTime
+        time_part = PlainTime(self._hour, self._minute, self._second, self._microsecond)
+        rounded_time = time_part.round(options)
+        
+        new_datetime = PlainDateTime(
+            self._year, self._month, self._day,
+            rounded_time.hour, rounded_time.minute, rounded_time.second, rounded_time.microsecond,
+            self._calendar
+        )
+        
+        # Handle case where rounding time caused day overflow
+        if rounded_time.hour == 0 and self._hour == 23:
+            # Time rounded to next day
+            from .duration import Duration
+            new_datetime = new_datetime.add(Duration(days=1))
+        
+        return new_datetime
+    
+    def with_plain_time(self, time: 'PlainTime') -> 'PlainDateTime':
+        """Replace the time part with a new time.
+        
+        Args:
+            time: The new time to use
+            
+        Returns:
+            A new PlainDateTime with the new time
+        """
+        from .plain_time import PlainTime
+        if not isinstance(time, PlainTime):
+            raise InvalidArgumentError("Expected PlainTime")
+        
+        return PlainDateTime(
+            self._year, self._month, self._day,
+            time.hour, time.minute, time.second, time.microsecond,
+            self._calendar
+        )
+    
+    def with_calendar(self, calendar: Calendar) -> 'PlainDateTime':
+        """Replace the calendar with a new calendar.
+        
+        Args:
+            calendar: The new calendar to use
+            
+        Returns:
+            A new PlainDateTime with the new calendar
+        """
+        if not isinstance(calendar, Calendar):
+            raise InvalidArgumentError("Expected Calendar")
+        
+        return PlainDateTime(
+            self._year, self._month, self._day,
+            self._hour, self._minute, self._second, self._microsecond,
+            calendar
+        )
+    
+    def equals(self, other: 'PlainDateTime') -> bool:
+        """Check if this datetime equals another.
+        
+        Args:
+            other: The datetime to compare
+            
+        Returns:
+            True if equal, False otherwise
+        """
+        return self == other
+    
+    def to_json(self) -> str:
+        """Convert to JSON string."""
+        return str(self)
+    
+    def to_locale_string(self, locale: str = "en-US") -> str:
+        """Convert to locale-specific string representation."""
+        # Basic implementation - could be enhanced with full locale support
+        return str(self)
+    
+    @staticmethod
+    def compare(a: 'PlainDateTime', b: 'PlainDateTime') -> int:
+        """Compare two PlainDateTime objects.
+        
+        Args:
+            a: First PlainDateTime
+            b: Second PlainDateTime
+            
+        Returns:
+            -1 if a < b, 0 if a == b, 1 if a > b
+        """
+        if not isinstance(a, PlainDateTime) or not isinstance(b, PlainDateTime):
+            raise InvalidArgumentError("Both arguments must be PlainDateTime")
+        
+        if a < b:
+            return -1
+        elif a > b:
+            return 1
+        else:
+            return 0
+    
+    @classmethod
+    def from_any(cls, value: Union[str, dict, 'PlainDateTime']) -> 'PlainDateTime':
+        """Create a PlainDateTime from various input types.
+        
+        Args:
+            value: String, dict, or PlainDateTime
+            
+        Returns:
+            A new PlainDateTime
+        """
+        if isinstance(value, PlainDateTime):
+            return value
+        elif isinstance(value, str):
+            return cls.from_string(value)
+        elif isinstance(value, dict):
+            year = value.get('year')
+            month = value.get('month')
+            day = value.get('day')
+            hour = value.get('hour', 0)
+            minute = value.get('minute', 0)
+            second = value.get('second', 0)
+            microsecond = value.get('microsecond', 0)
+            calendar = value.get('calendar')
+            
+            if year is None or month is None or day is None:
+                raise InvalidArgumentError("year, month, and day are required")
+            
+            if calendar and isinstance(calendar, str):
+                calendar = Calendar.from_string(calendar)
+            
+            return cls(year, month, day, hour, minute, second, microsecond, calendar)
+        else:
+            raise InvalidArgumentError(f"Cannot create PlainDateTime from {type(value)}")

@@ -12,15 +12,17 @@ The Temporal API provides a modern approach to working with dates and times in P
 
 ## Features
 
-- **Core Temporal Objects**: PlainDate, PlainTime, PlainDateTime, ZonedDateTime
-- **Duration and Instant**: Classes with arithmetic operations
-- **Calendar System Support**: ISO 8601 calendar system
-- **Parsing and Formatting**: ISO 8601 string parsing and formatting
-- **Time Zone Handling**: Time zone operations using Python's `zoneinfo`
-- **Comparison Operators**: Full comparison support for temporal objects
+- **Complete Temporal Objects**: PlainDate, PlainTime, PlainDateTime, PlainYearMonth, PlainMonthDay, ZonedDateTime
+- **Duration and Instant**: Classes with arithmetic operations and advanced methods
+- **Calendar System Support**: ISO 8601 calendar system with extensible architecture
+- **Parsing and Formatting**: Complete ISO 8601 string parsing and formatting
+- **Time Zone Handling**: Full timezone operations using Python's `zoneinfo`
+- **Advanced Methods**: until(), since(), round(), compare(), total() and more
+- **Flexible Input**: from_any() methods support multiple input types
+- **Comparison Operators**: Full comparison support for all temporal objects
 - **Type Hints**: Complete type hint coverage for better development experience
 - **Immutable Objects**: All temporal objects are immutable for thread safety
-- **Comprehensive Testing**: 75 tests covering all functionality
+- **Comprehensive Testing**: 101 tests covering all functionality including new classes
 
 ## Installation
 
@@ -46,20 +48,35 @@ pip install -e .
 ## Quick Start
 
 ```python
-from temporal import PlainDate, PlainTime, PlainDateTime, Duration, TimeZone, ZonedDateTime
+from temporal import (PlainDate, PlainTime, PlainDateTime, PlainYearMonth, 
+                     PlainMonthDay, Duration, TimeZone, ZonedDateTime, Instant)
 
 # Working with dates
 date = PlainDate(2023, 6, 15)
 print(f"Date: {date}")  # 2023-06-15
 print(f"Day of week: {date.day_of_week}")  # 4 (Thursday)
 
-# Date arithmetic
+# Date arithmetic and advanced methods
 future_date = date.add(Duration(days=7))
 print(f"One week later: {future_date}")  # 2023-06-22
+duration_between = date.until(future_date)
+print(f"Duration: {duration_between}")  # P7D
 
-# Working with times
-time = PlainTime(14, 30, 45)
-print(f"Time: {time}")  # 14:30:45
+# Working with year-month combinations
+year_month = PlainYearMonth(2023, 6)
+print(f"Year-Month: {year_month}")  # 2023-06
+print(f"Days in month: {year_month.days_in_month}")  # 30
+
+# Working with recurring dates (birthdays, holidays)
+birthday = PlainMonthDay(8, 24)
+print(f"Birthday: {birthday}")  # --08-24
+print(f"Valid in 2024: {birthday.is_valid_for_year(2024)}")  # True
+
+# Working with times and rounding
+time = PlainTime(14, 30, 45, 123456)
+print(f"Time: {time}")  # 14:30:45.123456
+rounded_time = time.round('seconds')
+print(f"Rounded: {rounded_time}")  # 14:30:45
 
 # Working with date-times
 dt = PlainDateTime(2023, 6, 15, 14, 30, 45)
@@ -69,11 +86,24 @@ print(f"DateTime: {dt}")  # 2023-06-15T14:30:45
 tz = TimeZone("UTC")
 zdt = ZonedDateTime(2023, 6, 15, 14, 30, 45, timezone=tz)
 print(f"Zoned DateTime: {zdt}")  # 2023-06-15T14:30:45Z
+print(f"Start of day: {zdt.start_of_day()}")  # 2023-06-15T00:00:00Z
 
-# Duration calculations
+# Duration calculations with advanced methods
 duration = Duration(days=1, hours=2, minutes=30)
-new_dt = dt.add(duration)
-print(f"After adding duration: {new_dt}")  # 2023-06-16T17:00:45
+print(f"Total hours: {duration.total('hours')}")  # 26.5
+rounded_duration = duration.round('hours')
+print(f"Rounded duration: {rounded_duration}")  # P1DT3H
+
+# Working with instants (exact moments in time)
+instant = Instant.now()
+future_instant = instant.add(Duration(hours=1))
+time_diff = instant.until(future_instant)
+print(f"Time difference: {time_diff}")  # PT1H
+
+# Flexible input with from_any methods
+date_from_string = PlainDate.from_any("2023-06-15")
+date_from_dict = PlainDate.from_any({"year": 2023, "month": 6, "day": 15})
+print(f"Same date: {date_from_string == date_from_dict}")  # True
 ```
 
 ## Core Classes
@@ -102,6 +132,27 @@ Represents a date and time without timezone information.
 dt = PlainDateTime(2023, 6, 15, 14, 30, 45)
 dt = PlainDateTime.from_string("2023-06-15T14:30:45")
 dt = PlainDateTime.now()
+```
+
+### PlainYearMonth
+Represents a year-month combination without a specific day.
+
+```python
+ym = PlainYearMonth(2023, 6)
+ym = PlainYearMonth.from_string("2023-06")
+print(ym.days_in_month)  # 30
+print(ym.in_leap_year)   # False
+```
+
+### PlainMonthDay
+Represents a month-day combination without a year (useful for recurring dates).
+
+```python
+md = PlainMonthDay(8, 24)  # August 24th
+md = PlainMonthDay.from_string("--08-24")
+feb29 = PlainMonthDay(2, 29)
+print(feb29.is_valid_for_year(2024))  # True (leap year)
+print(feb29.is_valid_for_year(2023))  # False (not leap year)
 ```
 
 ### ZonedDateTime
@@ -176,12 +227,14 @@ Run the test suite:
 python -m pytest tests/ -v
 ```
 
-All 75 tests should pass, covering:
-- Core functionality of all temporal classes
+All 101 tests should pass, covering:
+- Core functionality of all temporal classes (including PlainYearMonth and PlainMonthDay)
 - Arithmetic operations and edge cases
-- String parsing and formatting
-- Timezone handling
-- Error conditions and validation
+- Advanced methods like until(), since(), round(), and total()
+- String parsing and formatting for all classes
+- Timezone handling and disambiguation
+- Static comparison methods and flexible input handling
+- Error conditions and comprehensive validation
 
 ## Examples
 

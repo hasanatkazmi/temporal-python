@@ -8,6 +8,8 @@ in a more intuitive and reliable way than the standard datetime module.
 from .plain_date import PlainDate
 from .plain_time import PlainTime
 from .plain_date_time import PlainDateTime
+from .plain_year_month import PlainYearMonth
+from .plain_month_day import PlainMonthDay
 from .zoned_date_time import ZonedDateTime
 from .duration import Duration
 from .instant import Instant
@@ -25,6 +27,8 @@ __all__ = [
     "PlainDate",
     "PlainTime", 
     "PlainDateTime",
+    "PlainYearMonth",
+    "PlainMonthDay",
     "ZonedDateTime",
     "Duration",
     "Instant",

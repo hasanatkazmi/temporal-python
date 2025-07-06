@@ -199,3 +199,142 @@ class PlainDate:
         """Get today's date."""
         today = date.today()
         return cls(today.year, today.month, today.day, calendar)
+    
+    def until(self, other: 'PlainDate') -> 'Duration':
+        """Calculate duration from this date to another.
+        
+        Args:
+            other: The target date
+            
+        Returns:
+            A Duration representing the difference
+        """
+        if not isinstance(other, PlainDate):
+            raise InvalidArgumentError("Expected PlainDate")
+        
+        return other.subtract(self)
+    
+    def since(self, other: 'PlainDate') -> 'Duration':
+        """Calculate duration from another date to this one.
+        
+        Args:
+            other: The source date
+            
+        Returns:
+            A Duration representing the difference
+        """
+        if not isinstance(other, PlainDate):
+            raise InvalidArgumentError("Expected PlainDate")
+        
+        return self.subtract(other)
+    
+    def to_plain_year_month(self) -> 'PlainYearMonth':
+        """Convert to PlainYearMonth.
+        
+        Returns:
+            A PlainYearMonth with this date's year and month
+        """
+        from .plain_year_month import PlainYearMonth
+        return PlainYearMonth(self._year, self._month, self._calendar)
+    
+    def to_plain_month_day(self) -> 'PlainMonthDay':
+        """Convert to PlainMonthDay.
+        
+        Returns:
+            A PlainMonthDay with this date's month and day
+        """
+        from .plain_month_day import PlainMonthDay
+        return PlainMonthDay(self._month, self._day, self._calendar)
+    
+    def to_zoned_date_time(self, timezone, time=None) -> 'ZonedDateTime':
+        """Convert to ZonedDateTime by adding timezone and optional time.
+        
+        Args:
+            timezone: The timezone to use
+            time: Optional time (defaults to midnight)
+            
+        Returns:
+            A ZonedDateTime
+        """
+        from .plain_time import PlainTime
+        from .zoned_date_time import ZonedDateTime
+        
+        if time is None:
+            time = PlainTime(0, 0, 0)
+        
+        return ZonedDateTime(
+            self._year, self._month, self._day,
+            time.hour, time.minute, time.second, time.microsecond,
+            timezone
+        )
+    
+    def equals(self, other: 'PlainDate') -> bool:
+        """Check if this date equals another.
+        
+        Args:
+            other: The date to compare
+            
+        Returns:
+            True if equal, False otherwise
+        """
+        return self == other
+    
+    def to_json(self) -> str:
+        """Convert to JSON string."""
+        return str(self)
+    
+    def to_locale_string(self, locale: str = "en-US") -> str:
+        """Convert to locale-specific string representation."""
+        # Basic implementation - could be enhanced with full locale support
+        return str(self)
+    
+    @staticmethod
+    def compare(a: 'PlainDate', b: 'PlainDate') -> int:
+        """Compare two PlainDate objects.
+        
+        Args:
+            a: First PlainDate
+            b: Second PlainDate
+            
+        Returns:
+            -1 if a < b, 0 if a == b, 1 if a > b
+        """
+        if not isinstance(a, PlainDate) or not isinstance(b, PlainDate):
+            raise InvalidArgumentError("Both arguments must be PlainDate")
+        
+        if a < b:
+            return -1
+        elif a > b:
+            return 1
+        else:
+            return 0
+    
+    @classmethod
+    def from_any(cls, value: Union[str, dict, 'PlainDate']) -> 'PlainDate':
+        """Create a PlainDate from various input types.
+        
+        Args:
+            value: String, dict, or PlainDate
+            
+        Returns:
+            A new PlainDate
+        """
+        if isinstance(value, PlainDate):
+            return value
+        elif isinstance(value, str):
+            return cls.from_string(value)
+        elif isinstance(value, dict):
+            year = value.get('year')
+            month = value.get('month')
+            day = value.get('day')
+            calendar = value.get('calendar')
+            
+            if year is None or month is None or day is None:
+                raise InvalidArgumentError("year, month, and day are required")
+            
+            if calendar and isinstance(calendar, str):
+                calendar = Calendar.from_string(calendar)
+            
+            return cls(year, month, day, calendar)
+        else:
+            raise InvalidArgumentError(f"Cannot create PlainDate from {type(value)}")

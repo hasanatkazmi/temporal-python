@@ -168,3 +168,148 @@ class PlainTime:
         """Create PlainTime from ISO 8601 string."""
         hour, minute, second, microsecond = parse_iso_time(time_string)
         return cls(hour, minute, second, microsecond)
+    
+    def until(self, other: 'PlainTime') -> 'Duration':
+        """Calculate duration from this time to another.
+        
+        Args:
+            other: The target time
+            
+        Returns:
+            A Duration representing the difference
+        """
+        if not isinstance(other, PlainTime):
+            raise InvalidArgumentError("Expected PlainTime")
+        
+        return other.subtract(self)
+    
+    def since(self, other: 'PlainTime') -> 'Duration':
+        """Calculate duration from another time to this one.
+        
+        Args:
+            other: The source time
+            
+        Returns:
+            A Duration representing the difference
+        """
+        if not isinstance(other, PlainTime):
+            raise InvalidArgumentError("Expected PlainTime")
+        
+        return self.subtract(other)
+    
+    def round(self, options: Union[str, dict]) -> 'PlainTime':
+        """Round the time to a specified increment.
+        
+        Args:
+            options: Either a string unit name or dict with 'smallestUnit' and optional 'roundingIncrement'
+            
+        Returns:
+            A new rounded PlainTime
+        """
+        if isinstance(options, str):
+            smallest_unit = options
+            rounding_increment = 1
+        elif isinstance(options, dict):
+            smallest_unit = options.get('smallestUnit', 'microseconds')
+            rounding_increment = options.get('roundingIncrement', 1)
+        else:
+            raise InvalidArgumentError("Options must be string or dict")
+        
+        # Convert to total microseconds
+        total_microseconds = (
+            self._hour * 3600 * 1000000 +
+            self._minute * 60 * 1000000 +
+            self._second * 1000000 +
+            self._microsecond
+        )
+        
+        if smallest_unit == 'hours':
+            increment_us = rounding_increment * 3600 * 1000000
+        elif smallest_unit == 'minutes':
+            increment_us = rounding_increment * 60 * 1000000
+        elif smallest_unit == 'seconds':
+            increment_us = rounding_increment * 1000000
+        elif smallest_unit == 'milliseconds':
+            increment_us = rounding_increment * 1000
+        elif smallest_unit == 'microseconds':
+            increment_us = rounding_increment
+        else:
+            raise InvalidArgumentError(f"Invalid unit: {smallest_unit}")
+        
+        # Round to the nearest increment
+        rounded_us = round(total_microseconds / increment_us) * increment_us
+        
+        # Convert back to time components
+        total_seconds, microsecond = divmod(rounded_us, 1000000)
+        total_minutes, second = divmod(total_seconds, 60)
+        hour, minute = divmod(total_minutes, 60)
+        
+        # Handle 24-hour wraparound
+        hour = hour % 24
+        
+        return PlainTime(int(hour), int(minute), int(second), int(microsecond))
+    
+    def equals(self, other: 'PlainTime') -> bool:
+        """Check if this time equals another.
+        
+        Args:
+            other: The time to compare
+            
+        Returns:
+            True if equal, False otherwise
+        """
+        return self == other
+    
+    def to_json(self) -> str:
+        """Convert to JSON string."""
+        return str(self)
+    
+    def to_locale_string(self, locale: str = "en-US") -> str:
+        """Convert to locale-specific string representation."""
+        # Basic implementation - could be enhanced with full locale support
+        return str(self)
+    
+    @staticmethod
+    def compare(a: 'PlainTime', b: 'PlainTime') -> int:
+        """Compare two PlainTime objects.
+        
+        Args:
+            a: First PlainTime
+            b: Second PlainTime
+            
+        Returns:
+            -1 if a < b, 0 if a == b, 1 if a > b
+        """
+        if not isinstance(a, PlainTime) or not isinstance(b, PlainTime):
+            raise InvalidArgumentError("Both arguments must be PlainTime")
+        
+        if a < b:
+            return -1
+        elif a > b:
+            return 1
+        else:
+            return 0
+    
+    @classmethod
+    def from_any(cls, value: Union[str, dict, 'PlainTime']) -> 'PlainTime':
+        """Create a PlainTime from various input types.
+        
+        Args:
+            value: String, dict, or PlainTime
+            
+        Returns:
+            A new PlainTime
+        """
+        if isinstance(value, PlainTime):
+            return value
+        elif isinstance(value, str):
+            return cls.from_string(value)
+        elif isinstance(value, dict):
+            hour = value.get('hour', 0)
+            minute = value.get('minute', 0)
+            second = value.get('second', 0)
+            microsecond = value.get('microsecond', 0)
+            
+            return cls(hour, minute, second, microsecond)
+        else:
+            raise InvalidArgumentError(f"Cannot create PlainTime from {type(value)}")
