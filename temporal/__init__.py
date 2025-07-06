@@ -35,4 +35,4 @@ __all__ = [
     "InvalidArgumentError",
 ]
 
-# PyPI publishing will work starting from the next auto version bump
+# PyPI publishing configured with API token
