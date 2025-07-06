@@ -1,0 +1,53 @@
+# Version bump labels
+- name: "version:major"
+  color: "d73a4a"
+  description: "Trigger major version bump (breaking changes)"
+
+- name: "version:minor"
+  color: "fbca04"
+  description: "Trigger minor version bump (new features)"
+
+- name: "version:patch"
+  color: "0366d6"
+  description: "Trigger patch version bump (bug fixes)"
+
+- name: "no-version-bump"
+  color: "e4e669"
+  description: "Skip automatic version bump"
+
+# Standard labels
+- name: "bug"
+  color: "d73a4a"
+  description: "Something isn't working"
+
+- name: "enhancement"
+  color: "a2eeef"
+  description: "New feature or request"
+
+- name: "documentation"
+  color: "0075ca"
+  description: "Improvements or additions to documentation"
+
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is needed"
+
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "This issue or pull request already exists"
+
+- name: "invalid"
+  color: "e4e669"
+  description: "This doesn't seem right"
+
+- name: "question"
+  color: "d876e3"
+  description: "Further information is requested"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "This will not be worked on"

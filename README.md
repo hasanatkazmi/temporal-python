@@ -292,6 +292,18 @@ Duration.from_string("P1DT2H30M45S")
 4. Ensure all tests pass
 5. Submit a pull request
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+### Automatic Versioning
+
+This project uses automatic semantic versioning:
+- **Patch** bumps (bug fixes) happen automatically on every merge to main
+- **Minor** bumps (new features) use `feat:` commits or `version:minor` PR labels  
+- **Major** bumps (breaking changes) use `BREAKING CHANGE:` commits or `version:major` PR labels
+- Skip versioning with `[skip version]` in commits or `no-version-bump` PR labels
+
+See [.github/VERSIONING.md](.github/VERSIONING.md) for complete details.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

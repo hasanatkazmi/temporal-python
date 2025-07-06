@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(source:*)",
+      "Bash(python:*)",
+      "Bash(git commit:*)",
+      "Bash(git rebase:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:tc39.es)",
+      "Bash(./env/bin/python -m pytest tests/ -v)",
+      "Bash(./env/bin/python:*)"
+    ],
+    "deny": []
+  }
+}

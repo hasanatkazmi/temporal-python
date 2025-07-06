@@ -1,0 +1,262 @@
+name: Auto Version Update
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - '.github/**'
+      - 'README.md'
+      - 'docs/**'
+  pull_request:
+    types: [ closed ]
+    branches: [ main ]
+
+jobs:
+  auto-version:
+    if: github.event_name == 'push' || (github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install packaging toml
+
+    - name: Determine version bump type
+      id: version-type
+      run: |
+        # Default to patch version bump
+        BUMP_TYPE="patch"
+        SKIP_BUMP="false"
+        
+        # Check commit messages for version bump indicators
+        COMMIT_MSG=$(git log -1 --pretty=%B)
+        
+        # Check for skip indicators
+        if echo "$COMMIT_MSG" | grep -i -E "(\[skip version\]|\[no version\]|skip version|no version bump)" > /dev/null; then
+          SKIP_BUMP="true"
+        fi
+        
+        # Check for version bump keywords in commit message
+        if echo "$COMMIT_MSG" | grep -i -E "(BREAKING CHANGE|major version|major update|breaking:)" > /dev/null; then
+          BUMP_TYPE="major"
+        elif echo "$COMMIT_MSG" | grep -i -E "(minor version|minor update|feat:|feature:)" > /dev/null; then
+          BUMP_TYPE="minor"
+        elif echo "$COMMIT_MSG" | grep -i -E "(patch version|patch update|fix:|bugfix:)" > /dev/null; then
+          BUMP_TYPE="patch"
+        fi
+        
+        # Check PR labels if this is a merged PR
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          PR_LABELS="${{ join(github.event.pull_request.labels.*.name, ' ') }}"
+          
+          if echo "$PR_LABELS" | grep -i "no-version-bump" > /dev/null; then
+            SKIP_BUMP="true"
+          elif echo "$PR_LABELS" | grep -i "version:major" > /dev/null; then
+            BUMP_TYPE="major"
+          elif echo "$PR_LABELS" | grep -i "version:minor" > /dev/null; then
+            BUMP_TYPE="minor"
+          elif echo "$PR_LABELS" | grep -i "version:patch" > /dev/null; then
+            BUMP_TYPE="patch"
+          fi
+        fi
+        
+        echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+        echo "skip_bump=$SKIP_BUMP" >> $GITHUB_OUTPUT
+        echo "Determined version bump type: $BUMP_TYPE (skip: $SKIP_BUMP)"
+
+    - name: Get current version and calculate new version
+      id: version
+      run: |
+        python << 'EOF'
+        import toml
+        import re
+        import os
+        from packaging.version import Version
+        
+        # Read current version from pyproject.toml
+        with open('pyproject.toml', 'r') as f:
+            config = toml.load(f)
+        
+        current_version_str = config['project']['version']
+        current_version = Version(current_version_str)
+        
+        bump_type = "${{ steps.version-type.outputs.bump_type }}"
+        
+        # Calculate new version based on bump type
+        if bump_type == "major":
+            new_version = Version(f"{current_version.major + 1}.0.0")
+        elif bump_type == "minor":
+            new_version = Version(f"{current_version.major}.{current_version.minor + 1}.0")
+        else:  # patch
+            new_version = Version(f"{current_version.major}.{current_version.minor}.{current_version.micro + 1}")
+        
+        print(f"Current version: {current_version}")
+        print(f"New version: {new_version}")
+        print(f"Bump type: {bump_type}")
+        
+        # Write to GitHub outputs
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"current_version={current_version}\n")
+            f.write(f"new_version={new_version}\n")
+        EOF
+
+    - name: Check if version should be updated
+      id: should-update
+      run: |
+        SHOULD_UPDATE="true"
+        
+        # Skip if explicitly requested
+        if [ "${{ steps.version-type.outputs.skip_bump }}" = "true" ]; then
+          SHOULD_UPDATE="false"
+          echo "Skipping version update - explicitly requested"
+        fi
+        
+        # Skip version update if this commit is already a version bump
+        COMMIT_MSG=$(git log -1 --pretty=%B)
+        if echo "$COMMIT_MSG" | grep -E "^(Bump version|Release)" > /dev/null; then
+          SHOULD_UPDATE="false"
+          echo "Skipping version update - this appears to be a version bump commit"
+        fi
+        
+        echo "should_update=$SHOULD_UPDATE" >> $GITHUB_OUTPUT
+
+    - name: Update version in pyproject.toml
+      if: steps.should-update.outputs.should_update == 'true'
+      run: |
+        python << 'EOF'
+        import toml
+        
+        # Read and update pyproject.toml
+        with open('pyproject.toml', 'r') as f:
+            config = toml.load(f)
+        
+        config['project']['version'] = "${{ steps.version.outputs.new_version }}"
+        
+        with open('pyproject.toml', 'w') as f:
+            toml.dump(config, f)
+        
+        print(f"Updated version to ${{ steps.version.outputs.new_version }}")
+        EOF
+
+    - name: Update version in __init__.py
+      if: steps.should-update.outputs.should_update == 'true'
+      run: |
+        sed -i 's/__version__ = ".*"/__version__ = "${{ steps.version.outputs.new_version }}"/' temporal/__init__.py
+        echo "Updated __init__.py version to ${{ steps.version.outputs.new_version }}"
+
+    - name: Update CHANGELOG.md
+      if: steps.should-update.outputs.should_update == 'true'
+      run: |
+        python << 'EOF'
+        import datetime
+        
+        version = "${{ steps.version.outputs.new_version }}"
+        bump_type = "${{ steps.version-type.outputs.bump_type }}"
+        current_date = datetime.date.today().strftime("%Y-%m-%d")
+        
+        # Determine change type based on bump type
+        change_type_map = {
+            "major": "### Changed\n- BREAKING CHANGE: Major version update",
+            "minor": "### Added\n- New feature added",
+            "patch": "### Fixed\n- Bug fixes and improvements"
+        }
+        
+        change_entry = change_type_map.get(bump_type, "### Fixed\n- Updates and improvements")
+        
+        # Read current CHANGELOG
+        try:
+            with open('CHANGELOG.md', 'r') as f:
+                content = f.read()
+        except FileNotFoundError:
+            content = "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n"
+        
+        # Insert new version entry after the header
+        lines = content.split('\n')
+        header_end = 0
+        for i, line in enumerate(lines):
+            if line.startswith('## [') or (i > 5 and line.strip() == ''):
+                header_end = i
+                break
+        
+        new_entry = [
+            f"## [{version}] - {current_date}",
+            "",
+            change_entry,
+            "",
+            ""
+        ]
+        
+        # Insert new entry
+        updated_lines = lines[:header_end] + new_entry + lines[header_end:]
+        
+        with open('CHANGELOG.md', 'w') as f:
+            f.write('\n'.join(updated_lines))
+        
+        print(f"Updated CHANGELOG.md with version {version}")
+        EOF
+
+    - name: Run tests to ensure everything works
+      if: steps.should-update.outputs.should_update == 'true'
+      run: |
+        pip install -e .
+        pip install pytest
+        pytest tests/ -x -q
+
+    - name: Commit version update
+      if: steps.should-update.outputs.should_update == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add pyproject.toml temporal/__init__.py CHANGELOG.md
+        git commit -m "Bump version to ${{ steps.version.outputs.new_version }}" || exit 0
+
+    - name: Push changes
+      if: steps.should-update.outputs.should_update == 'true'
+      run: |
+        git push origin main
+
+    - name: Create and push tag
+      if: steps.should-update.outputs.should_update == 'true'
+      run: |
+        git tag "v${{ steps.version.outputs.new_version }}"
+        git push origin "v${{ steps.version.outputs.new_version }}"
+
+    - name: Create GitHub Release
+      if: steps.should-update.outputs.should_update == 'true'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: "v${{ steps.version.outputs.new_version }}"
+        release_name: "Release v${{ steps.version.outputs.new_version }}"
+        body: |
+          ## Version ${{ steps.version.outputs.new_version }}
+          
+          **Type**: ${{ steps.version-type.outputs.bump_type }} version update
+          
+          ### Changes
+          See [CHANGELOG.md](https://github.com/hasanatkazmi/temporal-python/blob/main/CHANGELOG.md) for detailed changes.
+          
+          ### Installation
+          ```bash
+          pip install temporal-python==${{ steps.version.outputs.new_version }}
+          ```
+          
+          **Full Changelog**: https://github.com/hasanatkazmi/temporal-python/compare/v${{ steps.version.outputs.current_version }}...v${{ steps.version.outputs.new_version }}
+        draft: false
+        prerelease: false

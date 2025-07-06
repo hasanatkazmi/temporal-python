@@ -1,0 +1,186 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+      skip_ci:
+        description: 'Skip CI after version bump'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  manual-version-bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install packaging toml
+
+    - name: Calculate new version
+      id: version
+      run: |
+        python << 'EOF'
+        import toml
+        from packaging.version import Version
+        
+        # Read current version
+        with open('pyproject.toml', 'r') as f:
+            config = toml.load(f)
+        
+        current_version = Version(config['project']['version'])
+        bump_type = "${{ github.event.inputs.bump_type }}"
+        
+        # Calculate new version
+        if bump_type == "major":
+            new_version = Version(f"{current_version.major + 1}.0.0")
+        elif bump_type == "minor":
+            new_version = Version(f"{current_version.major}.{current_version.minor + 1}.0")
+        else:  # patch
+            new_version = Version(f"{current_version.major}.{current_version.minor}.{current_version.micro + 1}")
+        
+        print(f"Bumping from {current_version} to {new_version} ({bump_type})")
+        
+        # Write to outputs
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"current_version={current_version}\n")
+            f.write(f"new_version={new_version}\n")
+        EOF
+
+    - name: Update version files
+      run: |
+        python << 'EOF'
+        import toml
+        
+        new_version = "${{ steps.version.outputs.new_version }}"
+        
+        # Update pyproject.toml
+        with open('pyproject.toml', 'r') as f:
+            config = toml.load(f)
+        config['project']['version'] = new_version
+        with open('pyproject.toml', 'w') as f:
+            toml.dump(config, f)
+        
+        # Update __init__.py
+        with open('temporal/__init__.py', 'r') as f:
+            content = f.read()
+        
+        import re
+        content = re.sub(r'__version__ = ".*"', f'__version__ = "{new_version}"', content)
+        
+        with open('temporal/__init__.py', 'w') as f:
+            f.write(content)
+        
+        print(f"Updated version to {new_version}")
+        EOF
+
+    - name: Update CHANGELOG
+      run: |
+        python << 'EOF'
+        import datetime
+        
+        version = "${{ steps.version.outputs.new_version }}"
+        bump_type = "${{ github.event.inputs.bump_type }}"
+        current_date = datetime.date.today().strftime("%Y-%m-%d")
+        
+        # Read current CHANGELOG
+        with open('CHANGELOG.md', 'r') as f:
+            content = f.read()
+        
+        # Create new entry
+        new_entry = f"""## [{version}] - {current_date}
+
+### Changed
+- Manual {bump_type} version bump
+
+"""
+        
+        # Insert after the header
+        lines = content.split('\n')
+        for i, line in enumerate(lines):
+            if line.startswith('## ['):
+                lines.insert(i, new_entry)
+                break
+        else:
+            # No existing versions, add after header
+            header_lines = []
+            content_lines = []
+            in_header = True
+            for line in lines:
+                if in_header and (line.startswith('## ') or line.strip() == ''):
+                    if line.startswith('## '):
+                        in_header = False
+                        content_lines.append(line)
+                    else:
+                        header_lines.append(line)
+                else:
+                    content_lines.append(line)
+            
+            lines = header_lines + [new_entry] + content_lines
+        
+        with open('CHANGELOG.md', 'w') as f:
+            f.write('\n'.join(lines))
+        EOF
+
+    - name: Commit and tag
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        git add pyproject.toml temporal/__init__.py CHANGELOG.md
+        
+        commit_msg="Release v${{ steps.version.outputs.new_version }}"
+        if [ "${{ github.event.inputs.skip_ci }}" = "true" ]; then
+          commit_msg="$commit_msg [skip ci]"
+        fi
+        
+        git commit -m "$commit_msg"
+        git tag "v${{ steps.version.outputs.new_version }}"
+
+    - name: Push changes
+      run: |
+        git push origin main
+        git push origin "v${{ steps.version.outputs.new_version }}"
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: "v${{ steps.version.outputs.new_version }}"
+        release_name: "Release v${{ steps.version.outputs.new_version }}"
+        body: |
+          ## Version ${{ steps.version.outputs.new_version }}
+          
+          **Type**: Manual ${{ github.event.inputs.bump_type }} version update
+          
+          ### Installation
+          ```bash
+          pip install temporal-python==${{ steps.version.outputs.new_version }}
+          ```
+        draft: false
+        prerelease: false
