@@ -1,62 +1,31 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = [ "setuptools>=61.0", "wheel",]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "temporal-python"
-version = "1.0.0"
+version = "1.0.1"
 description = "A complete Python port of JavaScript's Temporal API for modern date and time handling"
 readme = "README.md"
-license = {file = "LICENSE"}
-authors = [
-    {name = "Hasanat Kazmi", email = "hasanatkazmi@gmail.com"}
-]
-maintainers = [
-    {name = "Hasanat Kazmi", email = "hasanatkazmi@gmail.com"}
-]
-classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Utilities",
-    "Typing :: Typed",
-]
-keywords = ["temporal", "date", "time", "datetime", "timezone", "duration", "calendar", "iso8601"]
+classifiers = [ "Development Status :: 5 - Production/Stable", "Intended Audience :: Developers", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3.7", "Programming Language :: Python :: 3.8", "Programming Language :: Python :: 3.9", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12", "Topic :: Software Development :: Libraries :: Python Modules", "Topic :: Utilities", "Typing :: Typed",]
+keywords = [ "temporal", "date", "time", "datetime", "timezone", "duration", "calendar", "iso8601",]
 requires-python = ">=3.7"
-dependencies = [
-    "backports.zoneinfo; python_version<'3.9'",
-]
+dependencies = [ "backports.zoneinfo; python_version<'3.9'",]
+[[project.authors]]
+name = "Hasanat Kazmi"
+email = "hasanatkazmi@gmail.com"
+
+[[project.maintainers]]
+name = "Hasanat Kazmi"
+email = "hasanatkazmi@gmail.com"
+
+[project.license]
+file = "LICENSE"
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=6.0",
-    "pytest-cov>=2.0",
-    "black>=22.0",
-    "flake8>=4.0",
-    "mypy>=0.900",
-    "isort>=5.0",
-    "bandit>=1.7",
-    "safety>=2.0",
-]
-test = [
-    "pytest>=6.0",
-    "pytest-cov>=2.0",
-    "pytest-benchmark>=3.0",
-]
-docs = [
-    "sphinx>=4.0",
-    "sphinx-rtd-theme>=1.0",
-    "sphinx-autodoc-typehints>=1.0",
-]
+dev = [ "pytest>=6.0", "pytest-cov>=2.0", "black>=22.0", "flake8>=4.0", "mypy>=0.900", "isort>=5.0", "bandit>=1.7", "safety>=2.0",]
+test = [ "pytest>=6.0", "pytest-cov>=2.0", "pytest-benchmark>=3.0",]
+docs = [ "sphinx>=4.0", "sphinx-rtd-theme>=1.0", "sphinx-autodoc-typehints>=1.0",]
 
 [project.urls]
 Homepage = "https://github.com/hasanatkazmi/temporal-python"
@@ -65,60 +34,11 @@ Repository = "https://github.com/hasanatkazmi/temporal-python"
 "Bug Tracker" = "https://github.com/hasanatkazmi/temporal-python/issues"
 Changelog = "https://github.com/hasanatkazmi/temporal-python/blob/main/CHANGELOG.md"
 
-[tool.setuptools.packages.find]
-include = ["temporal*"]
-exclude = ["tests*"]
-
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra -q --strict-markers --strict-config"
-testpaths = ["tests"]
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
-]
-
-[tool.coverage.run]
-source = ["temporal"]
-omit = [
-    "*/tests/*",
-    "*/test_*",
-    "setup.py",
-]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod",
-]
-show_missing = true
-skip_covered = false
-
 [tool.black]
 line-length = 127
-target-version = ['py37', 'py38', 'py39', 'py310', 'py311', 'py312']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-)/
-'''
+target-version = [ "py37", "py38", "py39", "py310", "py311", "py312",]
+include = "\\.pyi?$"
+extend-exclude = "/(\n  # directories\n  \\.eggs\n  | \\.git\n  | \\.hg\n  | \\.mypy_cache\n  | \\.tox\n  | \\.venv\n  | build\n  | dist\n)/\n"
 
 [tool.isort]
 profile = "black"
@@ -128,8 +48,8 @@ include_trailing_comma = true
 force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
-known_first_party = ["temporal"]
-known_third_party = ["pytest"]
+known_first_party = [ "temporal",]
+known_third_party = [ "pytest",]
 
 [tool.mypy]
 python_version = "3.7"
@@ -146,12 +66,30 @@ warn_no_return = true
 warn_unreachable = true
 strict_equality = true
 show_error_codes = true
-
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
 
 [tool.bandit]
-exclude_dirs = ["tests"]
-skips = ["B101"]  # Skip assert_used test
+exclude_dirs = [ "tests",]
+skips = [ "B101",]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = [ "tests",]
+markers = [ "slow: marks tests as slow (deselect with '-m \"not slow\"')", "integration: marks tests as integration tests",]
+
+[tool.coverage.run]
+source = [ "temporal",]
+omit = [ "*/tests/*", "*/test_*", "setup.py",]
+
+[tool.coverage.report]
+exclude_lines = [ "pragma: no cover", "def __repr__", "if self.debug:", "if settings.DEBUG", "raise AssertionError", "raise NotImplementedError", "if 0:", "if __name__ == .__main__.:", "class .*\\bProtocol\\):", "@(abc\\.)?abstractmethod",]
+show_missing = true
+skip_covered = false
+
+[tool.setuptools.packages.find]
+include = [ "temporal*",]
+exclude = [ "tests*",]
