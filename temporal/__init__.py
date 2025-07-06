@@ -35,4 +35,4 @@ __all__ = [
     "InvalidArgumentError",
 ]
 
-# PR-based development workflow active
+# Fully automatic version bump workflow active
